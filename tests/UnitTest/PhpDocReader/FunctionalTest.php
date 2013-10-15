@@ -39,6 +39,9 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
         $type = $parser->getParameterType(new ReflectionParameter($method, 'paramNone'));
         $this->assertNull($type);
 
+        $type = $parser->getParameterType(new ReflectionParameter($method, 'paramTypeHint'));
+        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class2', $type);
+
         $type = $parser->getParameterType(new ReflectionParameter($method, 'paramFQN'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class2', $type);
 

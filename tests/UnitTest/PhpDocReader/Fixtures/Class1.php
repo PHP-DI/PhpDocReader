@@ -25,11 +25,12 @@ class Class1
 
     /**
      * @param                                        $paramNone
+     * @param                                        $paramTypeHint
      * @param \UnitTest\PhpDocReader\Fixtures\Class2 $paramFQN
      * @param Class2                                 $paramLocalName
      * @param ClassClass3                            $paramAlias
      */
-    public function foo($paramNone, $paramFQN, $paramLocalName, $paramAlias)
+    public function foo($paramNone, Class2 $paramTypeHint, $paramFQN, $paramLocalName, $paramAlias)
     {
     }
 } 
