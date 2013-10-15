@@ -3,8 +3,6 @@
 namespace PhpDocReader;
 
 use Doctrine\Common\Annotations\PhpParser;
-use ReflectionClass;
-use ReflectionMethod;
 use ReflectionParameter;
 use ReflectionProperty;
 
@@ -30,14 +28,17 @@ class PhpDocReader
     }
 
     /**
-     * Parse the docblock of the property to get the var annotation
-     * @param ReflectionClass    $class
+     * Parse the docblock of the property to get the var annotation.
+     *
      * @param ReflectionProperty $property
+     *
      * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
      */
-    public function getPropertyType(ReflectionClass $class, ReflectionProperty $property)
+    public function getPropertyType(ReflectionProperty $property)
     {
+        $class = $property->getDeclaringClass();
+
         // Get the content of the @var annotation
         if (preg_match('/@var\s+([^\s]+)/', $property->getDocComment(), $matches)) {
             list(, $type) = $matches;
@@ -93,14 +94,18 @@ class PhpDocReader
     }
 
     /**
-     * Parse the docblock of the property to get the param annotation
-     * @param ReflectionClass  $class
-     * @param ReflectionMethod $method
+     * Parse the docblock of the property to get the param annotation.
+     *
+     * @param ReflectionParameter $parameter
      * @throws AnnotationException
+     *
      * @return string|null Type of the property (content of var annotation)
      */
-    public function getParameterType(ReflectionClass $class, ReflectionMethod $method, ReflectionParameter $parameter)
+    public function getParameterType(ReflectionParameter $parameter)
     {
+        $method = $parameter->getDeclaringFunction();
+        $class = $parameter->getDeclaringClass();
+
         // Use reflection
         $parameterClass = $parameter->getClass();
         if ($parameterClass !== null) {
@@ -121,7 +126,7 @@ class PhpDocReader
             $loweredAlias = strtolower($alias);
 
             // Retrieve "use" statements
-            $uses = $this->phpParser->parseClass($method->getDeclaringClass());
+            $uses = $this->phpParser->parseClass($class);
 
             $found = false;
 
