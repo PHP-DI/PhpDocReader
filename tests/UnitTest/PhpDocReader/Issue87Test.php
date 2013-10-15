@@ -6,11 +6,12 @@ use Doctrine\Common\Annotations\Annotation\Target;
 use PhpDocReader\PhpDocReader;
 
 /**
- * Test class for PhpDocReader
+ * @see https://github.com/mnapoli/PHP-DI/issues/87
  */
-class PhpDocReaderTest extends \PHPUnit_Framework_TestCase
+class Issue87Test extends \PHPUnit_Framework_TestCase
 {
     /**
+     * This test ensures that use statements in class files take precedence in resolving type annotations
      * @see https://github.com/mnapoli/PHP-DI/issues/87
      */
     public function testGetParameterTypeUseStatementBeforeLocalNamespace()
