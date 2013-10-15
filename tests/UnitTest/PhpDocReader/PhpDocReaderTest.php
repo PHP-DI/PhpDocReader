@@ -8,7 +8,7 @@ use PhpDocReader\PhpDocReader;
 /**
  * Test class for PhpDocReader
  */
-class PhpDocParserTest extends \PHPUnit_Framework_TestCase
+class PhpDocReaderTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @see https://github.com/mnapoli/PHP-DI/issues/87
