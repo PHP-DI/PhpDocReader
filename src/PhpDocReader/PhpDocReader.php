@@ -37,14 +37,14 @@ class PhpDocReader
      */
     public function getPropertyType(ReflectionProperty $property)
     {
-        $class = $property->getDeclaringClass();
-
         // Get the content of the @var annotation
         if (preg_match('/@var\s+([^\s]+)/', $property->getDocComment(), $matches)) {
             list(, $type) = $matches;
         } else {
             return null;
         }
+
+        $class = $property->getDeclaringClass();
 
         // If the class name is not fully qualified (i.e. doesn't start with a \)
         if ($type[0] !== '\\') {
@@ -103,9 +103,6 @@ class PhpDocReader
      */
     public function getParameterType(ReflectionParameter $parameter)
     {
-        $method = $parameter->getDeclaringFunction();
-        $class = $parameter->getDeclaringClass();
-
         // Use reflection
         $parameterClass = $parameter->getClass();
         if ($parameterClass !== null) {
@@ -114,11 +111,14 @@ class PhpDocReader
 
         $parameterName = $parameter->name;
         // Get the content of the @param annotation
+        $method = $parameter->getDeclaringFunction();
         if (preg_match('/@param\s+([^\s]+)\s+\$' . $parameterName . '/', $method->getDocComment(), $matches)) {
             list(, $type) = $matches;
         } else {
             return null;
         }
+
+        $class = $parameter->getDeclaringClass();
 
         // If the class name is not fully qualified (i.e. doesn't start with a \)
         if ($type[0] !== '\\') {
