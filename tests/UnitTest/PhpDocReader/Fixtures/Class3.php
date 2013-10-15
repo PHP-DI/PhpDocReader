@@ -2,7 +2,6 @@
 
 namespace UnitTest\PhpDocReader\Fixtures;
 
-class SomeDependencyFixture
+class Class3
 {
-
 }

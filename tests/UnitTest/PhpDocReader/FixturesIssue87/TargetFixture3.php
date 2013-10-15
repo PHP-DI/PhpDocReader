@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTest\PhpDocReader\Fixtures;
+namespace UnitTest\PhpDocReader\FixturesIssue87;
 
 /**
  * Has a dependency in the local namespace

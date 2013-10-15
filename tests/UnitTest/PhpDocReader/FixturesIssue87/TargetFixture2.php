@@ -1,13 +1,13 @@
 <?php
 
-namespace UnitTest\PhpDocReader\Fixtures;
+namespace UnitTest\PhpDocReader\FixturesIssue87;
 
-use UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture;
+use UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2 as SomeDependencyFixture;
 
 /**
- * Has a dependency locally aliased from another namespace
+ * Has a dependency locally aliased to a name in the local namespace of the targets
  */
-class TargetFixture1
+class TargetFixture2
 {
 
     /**

@@ -2,7 +2,6 @@
 
 namespace UnitTest\PhpDocReader;
 
-use Doctrine\Common\Annotations\Annotation\Target;
 use PhpDocReader\PhpDocReader;
 
 /**
@@ -18,7 +17,7 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
     {
         $parser = new PhpDocReader();
 
-        $target1 = new Fixtures\TargetFixture1();
+        $target1 = new FixturesIssue87\TargetFixture1();
 
         $target1ReflectionClass = new \ReflectionClass($target1);
         $target1ReflectionMethod = $target1ReflectionClass->getMethod("SomeMethod");
@@ -27,17 +26,17 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getParameterType($target1ReflectionParams[0]);
 
         //Since TargetFixture1 file has a use statement to the Subspace namespace, that's the one that should be returned
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture', $result);
 
 
         $result = $parser->getParameterType($target1ReflectionParams[1]);
 
         //this parameter should be unaffected by use namespace since it has a relative type path
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
 
 
 
-        $target2 = new Fixtures\TargetFixture2();
+        $target2 = new FixturesIssue87\TargetFixture2();
 
         $target2ReflectionClass = new \ReflectionClass($target2);
         $target2ReflectionMethod = $target2ReflectionClass->getMethod("SomeMethod");
@@ -46,17 +45,17 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getParameterType($target2ReflectionParams[0]);
 
         //Since TargetFixture2 file has a use statement with an alias to the Subspace namespace, that's the one that should be returned
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
 
 
         $result = $parser->getParameterType($target2ReflectionParams[1]);
 
         //this parameter should be unaffected by use namespace since it has a relative type path
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
 
 
 
-        $target3 = new Fixtures\TargetFixture3();
+        $target3 = new FixturesIssue87\TargetFixture3();
 
         $target3ReflectionClass = new \ReflectionClass($target3);
         $target3ReflectionMethod = $target3ReflectionClass->getMethod("SomeMethod");
@@ -65,13 +64,13 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getParameterType($target3ReflectionParams[0]);
 
         //Since TargetFixture3 file has NO use statement, the one local to the target's namespace should be used
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\SomeDependencyFixture', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\SomeDependencyFixture', $result);
 
 
         $result = $parser->getParameterType($target3ReflectionParams[1]);
 
         //this parameter should be unaffected by use namespace since it has a relative type path
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
     }
 
 
@@ -83,7 +82,7 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
     {
         $parser = new PhpDocReader();
 
-        $target1 = new Fixtures\TargetFixture1();
+        $target1 = new FixturesIssue87\TargetFixture1();
 
         $target1ReflectionClass = new \ReflectionClass($target1);
         $target1ReflectionProperty1 = $target1ReflectionClass->getProperty("dependency1");
@@ -91,7 +90,7 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getPropertyType($target1ReflectionProperty1);
 
         //Since TargetFixture1 file has a use statement to the Subspace namespace, that's the one that should be returned
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture', $result);
 
 
         $target1ReflectionProperty2 = $target1ReflectionClass->getProperty("dependency2");
@@ -99,11 +98,11 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getPropertyType($target1ReflectionProperty2);
 
         //this property should be unaffected by use namespace since it has a relative type path
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
 
 
 
-        $target2 = new Fixtures\TargetFixture2();
+        $target2 = new FixturesIssue87\TargetFixture2();
 
         $target2ReflectionClass = new \ReflectionClass($target2);
         $target2ReflectionProperty1 = $target2ReflectionClass->getProperty("dependency1");
@@ -111,7 +110,7 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getPropertyType($target2ReflectionProperty1);
 
         //Since TargetFixture2 file has a use statement with an alias to the Subspace namespace, that's the one that should be returned
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
 
 
         $target2ReflectionProperty2 = $target2ReflectionClass->getProperty("dependency2");
@@ -119,11 +118,11 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getPropertyType($target2ReflectionProperty2);
 
         //this property should be unaffected by use namespace since it has a relative type path
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
 
 
 
-        $target3 = new Fixtures\TargetFixture3();
+        $target3 = new FixturesIssue87\TargetFixture3();
 
         $target3ReflectionClass = new \ReflectionClass($target3);
         $target3ReflectionProperty1 = $target3ReflectionClass->getProperty("dependency1");
@@ -131,7 +130,7 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getPropertyType($target3ReflectionProperty1);
 
         //Since TargetFixture3 file has NO use statement, the one local to the target's namespace should be used
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\SomeDependencyFixture', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\SomeDependencyFixture', $result);
 
 
         $target3ReflectionProperty2 = $target3ReflectionClass->getProperty("dependency2");
@@ -139,6 +138,6 @@ class Issue87Test extends \PHPUnit_Framework_TestCase
         $result = $parser->getPropertyType($target3ReflectionProperty2);
 
         //this property should be unaffected by use namespace since it has a relative type path
-        $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Subspace\SomeDependencyFixture2', $result);
+        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue87\Subspace\SomeDependencyFixture2', $result);
     }
 }
