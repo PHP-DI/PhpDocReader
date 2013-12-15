@@ -40,6 +40,8 @@ It supports namespaced class names with the same resolution rules as PHP:
 - relative class name (from the current namespace, like `SubNamespace\MyClass`)
 - aliased class name  (eg. `use My\Cache\Backend as FooBar;`)
 
+Primitive types (`@var string`) are ignored (returns null), only valid class names are returned.
+
 ## Usage
 
 ```php
@@ -47,9 +49,9 @@ $reader = new PhpDocReader();
 
 // Read a property type (@var phpdoc)
 $property = new ReflectionProperty($className, $propertyName);
-$propertyType = $reader->getPropertyType($property);
+$propertyClass = $reader->getPropertyClass($property);
 
 // Read a parameter type (@param phpdoc)
 $parameter = new ReflectionParameter(array($className, $methodName), $parameterName);
-$parameterType = $reader->getParameterType($parameter);
+$parameterClass = $reader->getParameterClass($parameter);
 ```
