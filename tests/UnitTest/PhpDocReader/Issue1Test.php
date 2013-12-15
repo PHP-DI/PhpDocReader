@@ -3,6 +3,7 @@
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
+use ReflectionParameter;
 
 /**
  * @see https://github.com/mnapoli/PhpDocReader/issues/1
@@ -26,15 +27,9 @@ class Issue1Test extends \PHPUnit_Framework_TestCase
     public function testMethodParameters($type)
     {
         $parser = new PhpDocReader();
+        $parameter = new ReflectionParameter(array('UnitTest\PhpDocReader\FixturesIssue1\Class1', 'foo'), $type);
 
-        $class = new \ReflectionClass('UnitTest\PhpDocReader\FixturesIssue1\Class1');
-        $params = $class->getMethod('foo')->getParameters();
-        $keys = array_map(function (\ReflectionParameter $param) {
-            return $param->getName();
-        }, $params);
-        $params = array_combine($keys, $params);
-
-        $this->assertNull($parser->getParameterClass($params[$type]));
+        $this->assertNull($parser->getParameterClass($parameter));
     }
 
     public function typeProvider()
