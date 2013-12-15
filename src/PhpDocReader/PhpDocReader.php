@@ -18,6 +18,20 @@ class PhpDocReader
      */
     private $phpParser;
 
+    private $ignoredTypes = array(
+        'bool',
+        'boolean',
+        'string',
+        'int',
+        'integer',
+        'float',
+        'double',
+        'array',
+        'object',
+        'callable',
+        'resource',
+    );
+
     public function __construct()
     {
         $this->phpParser = new PhpParser();
@@ -30,6 +44,7 @@ class PhpDocReader
      *
      * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
+     * @todo Rename to getPropertyClass
      */
     public function getPropertyType(ReflectionProperty $property)
     {
@@ -37,6 +52,11 @@ class PhpDocReader
         if (preg_match('/@var\s+([^\s]+)/', $property->getDocComment(), $matches)) {
             list(, $type) = $matches;
         } else {
+            return null;
+        }
+
+        // Ignore primitive types
+        if (in_array($type, $this->ignoredTypes)) {
             return null;
         }
 
@@ -74,8 +94,9 @@ class PhpDocReader
 
             if (!$found) {
                 throw new AnnotationException(sprintf(
-                    'The @var annotation on %s::%s contains a non existent class. '
-                        . 'Did you maybe forget to add a \'use\' statement for this annotation?',
+                    'The @var annotation on %s::%s contains a non existent class "%s". '
+                        . 'Did you maybe forget to add a "use" statement for this annotation?',
+                    $type,
                     $class->name,
                     $property->getName()
                 ));
@@ -84,7 +105,8 @@ class PhpDocReader
 
         if (!$this->classExists($type)) {
             throw new AnnotationException(sprintf(
-                'The @var annotation on %s::%s contains a non existent class',
+                'The @var annotation on %s::%s contains a non existent class "%s"',
+                $type,
                 $class->name,
                 $property->getName()
             ));
@@ -103,6 +125,7 @@ class PhpDocReader
      *
      * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
+     * @todo Rename to getParameterClass
      */
     public function getParameterType(ReflectionParameter $parameter)
     {
@@ -118,6 +141,11 @@ class PhpDocReader
         if (preg_match('/@param\s+([^\s]+)\s+\$' . $parameterName . '/', $method->getDocComment(), $matches)) {
             list(, $type) = $matches;
         } else {
+            return null;
+        }
+
+        // Ignore primitive types
+        if (in_array($type, $this->ignoredTypes)) {
             return null;
         }
 
@@ -155,8 +183,9 @@ class PhpDocReader
 
             if (!$found) {
                 throw new AnnotationException(sprintf(
-                    'The @param annotation for parameter %s of %s::%s contains a non existent class. '
-                        . 'Did you maybe forget to add a \'use\' statement for this annotation?',
+                    'The @param annotation for parameter %s of %s::%s contains a non existent class "%s". '
+                        . 'Did you maybe forget to add a "use" statement for this annotation?',
+                    $type,
                     $parameterName,
                     $class->name,
                     $method->name
@@ -166,7 +195,8 @@ class PhpDocReader
 
         if (!$this->classExists($type)) {
             throw new AnnotationException(sprintf(
-                'The @param annotation for parameter %s of %s::%s contains a non existent class',
+                'The @param annotation for parameter %s of %s::%s contains a non existent class "%s"',
+                $type,
                 $parameterName,
                 $class->name,
                 $method->name
