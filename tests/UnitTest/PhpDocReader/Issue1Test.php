@@ -17,7 +17,7 @@ class Issue1Test extends \PHPUnit_Framework_TestCase
         $parser = new PhpDocReader();
         $class = new \ReflectionClass('UnitTest\PhpDocReader\FixturesIssue1\Class1');
 
-        $this->assertNull($parser->getPropertyType($class->getProperty($type)));
+        $this->assertNull($parser->getPropertyClass($class->getProperty($type)));
     }
 
     /**
@@ -34,7 +34,7 @@ class Issue1Test extends \PHPUnit_Framework_TestCase
         }, $params);
         $params = array_combine($keys, $params);
 
-        $this->assertNull($parser->getParameterType($params[$type]));
+        $this->assertNull($parser->getParameterClass($params[$type]));
     }
 
     public function typeProvider()

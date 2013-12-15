@@ -17,16 +17,16 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 
         $className = 'UnitTest\PhpDocReader\Fixtures\Class1';
 
-        $type = $parser->getPropertyType(new ReflectionProperty($className, 'propNone'));
+        $type = $parser->getPropertyClass(new ReflectionProperty($className, 'propNone'));
         $this->assertNull($type);
 
-        $type = $parser->getPropertyType(new ReflectionProperty($className, 'propFQN'));
+        $type = $parser->getPropertyClass(new ReflectionProperty($className, 'propFQN'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class2', $type);
 
-        $type = $parser->getPropertyType(new ReflectionProperty($className, 'propLocalName'));
+        $type = $parser->getPropertyClass(new ReflectionProperty($className, 'propLocalName'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class2', $type);
 
-        $type = $parser->getPropertyType(new ReflectionProperty($className, 'propAlias'));
+        $type = $parser->getPropertyClass(new ReflectionProperty($className, 'propAlias'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class3', $type);
     }
 
@@ -36,19 +36,19 @@ class FunctionalTest extends \PHPUnit_Framework_TestCase
 
         $method = array('UnitTest\PhpDocReader\Fixtures\Class1', 'foo');
 
-        $type = $parser->getParameterType(new ReflectionParameter($method, 'paramNone'));
+        $type = $parser->getParameterClass(new ReflectionParameter($method, 'paramNone'));
         $this->assertNull($type);
 
-        $type = $parser->getParameterType(new ReflectionParameter($method, 'paramTypeHint'));
+        $type = $parser->getParameterClass(new ReflectionParameter($method, 'paramTypeHint'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class2', $type);
 
-        $type = $parser->getParameterType(new ReflectionParameter($method, 'paramFQN'));
+        $type = $parser->getParameterClass(new ReflectionParameter($method, 'paramFQN'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class2', $type);
 
-        $type = $parser->getParameterType(new ReflectionParameter($method, 'paramLocalName'));
+        $type = $parser->getParameterClass(new ReflectionParameter($method, 'paramLocalName'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class2', $type);
 
-        $type = $parser->getParameterType(new ReflectionParameter($method, 'paramAlias'));
+        $type = $parser->getParameterClass(new ReflectionParameter($method, 'paramAlias'));
         $this->assertEquals('UnitTest\PhpDocReader\Fixtures\Class3', $type);
     }
 }

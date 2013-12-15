@@ -38,15 +38,29 @@ class PhpDocReader
     }
 
     /**
-     * Parse the docblock of the property to get the var annotation.
+     * Parse the docblock of the property to get the class of the var annotation.
      *
      * @param ReflectionProperty $property
      *
      * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
-     * @todo Rename to getPropertyClass
+     *
+     * @deprecated Use getPropertyClass instead.
      */
     public function getPropertyType(ReflectionProperty $property)
+    {
+        return $this->getPropertyClass($property);
+    }
+
+    /**
+     * Parse the docblock of the property to get the class of the var annotation.
+     *
+     * @param ReflectionProperty $property
+     *
+     * @throws AnnotationException
+     * @return string|null Type of the property (content of var annotation)
+     */
+    public function getPropertyClass(ReflectionProperty $property)
     {
         // Get the content of the @var annotation
         if (preg_match('/@var\s+([^\s]+)/', $property->getDocComment(), $matches)) {
@@ -119,15 +133,27 @@ class PhpDocReader
     }
 
     /**
-     * Parse the docblock of the property to get the param annotation.
+     * Parse the docblock of the property to get the class of the param annotation.
      *
      * @param ReflectionParameter $parameter
      *
      * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
-     * @todo Rename to getParameterClass
      */
     public function getParameterType(ReflectionParameter $parameter)
+    {
+        return $this->getParameterClass($parameter);
+    }
+
+    /**
+     * Parse the docblock of the property to get the class of the param annotation.
+     *
+     * @param ReflectionParameter $parameter
+     *
+     * @throws AnnotationException
+     * @return string|null Type of the property (content of var annotation)
+     */
+    public function getParameterClass(ReflectionParameter $parameter)
     {
         // Use reflection
         $parameterClass = $parameter->getClass();
