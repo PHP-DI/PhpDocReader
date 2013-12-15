@@ -18,10 +18,6 @@ class PhpDocReader
      */
     private $phpParser;
 
-
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->phpParser = new PhpParser();
@@ -77,14 +73,21 @@ class PhpDocReader
             }
 
             if (!$found) {
-                throw new AnnotationException("The @var annotation on {$class->name}::" . $property->getName()
-                    . " contains a non existent class. Did you maybe forget to add a 'use' statement for this annotation?");
+                throw new AnnotationException(sprintf(
+                    'The @var annotation on %s::%s contains a non existent class. '
+                        . 'Did you maybe forget to add a \'use\' statement for this annotation?',
+                    $class->name,
+                    $property->getName()
+                ));
             }
         }
 
         if (!$this->classExists($type)) {
-            throw new AnnotationException("The @var annotation on {$class->name}::" . $property->getName()
-                . " contains a non existent class");
+            throw new AnnotationException(sprintf(
+                'The @var annotation on %s::%s contains a non existent class',
+                $class->name,
+                $property->getName()
+            ));
         }
 
         // Remove the leading \ (FQN shouldn't contain it)
@@ -97,8 +100,8 @@ class PhpDocReader
      * Parse the docblock of the property to get the param annotation.
      *
      * @param ReflectionParameter $parameter
-     * @throws AnnotationException
      *
+     * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
      */
     public function getParameterType(ReflectionParameter $parameter)
@@ -151,14 +154,23 @@ class PhpDocReader
             }
 
             if (!$found) {
-                throw new AnnotationException("The @param annotation for parameter $parameterName of {$class->name}::" . $method->name
-                    . " contains a non existent class. Did you maybe forget to add a 'use' statement for this annotation?");
+                throw new AnnotationException(sprintf(
+                    'The @param annotation for parameter %s of %s::%s contains a non existent class. '
+                        . 'Did you maybe forget to add a \'use\' statement for this annotation?',
+                    $parameterName,
+                    $class->name,
+                    $method->name
+                ));
             }
         }
 
         if (!$this->classExists($type)) {
-            throw new AnnotationException("The @param annotation for parameter $parameterName of {$class->name}::" . $method->name
-                . " contains a non existent class");
+            throw new AnnotationException(sprintf(
+                'The @param annotation for parameter %s of %s::%s contains a non existent class',
+                $parameterName,
+                $class->name,
+                $method->name
+            ));
         }
 
         // Remove the leading \ (FQN shouldn't contain it)
