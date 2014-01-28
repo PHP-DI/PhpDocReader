@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTest\PhpDocReader\FixturesIssue1;
+namespace UnitTest\PhpDocReader\FixturesPrimitiveTypes;
 
 class Class1
 {

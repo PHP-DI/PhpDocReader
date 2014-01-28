@@ -8,7 +8,7 @@ use ReflectionParameter;
 /**
  * @see https://github.com/mnapoli/PhpDocReader/issues/1
  */
-class Issue1Test extends \PHPUnit_Framework_TestCase
+class PrimitiveTypesTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider typeProvider
@@ -16,7 +16,7 @@ class Issue1Test extends \PHPUnit_Framework_TestCase
     public function testProperties($type)
     {
         $parser = new PhpDocReader();
-        $class = new \ReflectionClass('UnitTest\PhpDocReader\FixturesIssue1\Class1');
+        $class = new \ReflectionClass('UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1');
 
         $this->assertNull($parser->getPropertyClass($class->getProperty($type)));
     }
@@ -27,7 +27,7 @@ class Issue1Test extends \PHPUnit_Framework_TestCase
     public function testMethodParameters($type)
     {
         $parser = new PhpDocReader();
-        $parameter = new ReflectionParameter(array('UnitTest\PhpDocReader\FixturesIssue1\Class1', 'foo'), $type);
+        $parameter = new ReflectionParameter(array('UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1', 'foo'), $type);
 
         $this->assertNull($parser->getParameterClass($parameter));
     }
