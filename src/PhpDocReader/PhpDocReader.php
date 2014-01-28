@@ -144,6 +144,8 @@ class PhpDocReader
      *
      * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
+     *
+     * @deprecated Use getParameterClass instead.
      */
     public function getParameterType(ReflectionParameter $parameter)
     {
