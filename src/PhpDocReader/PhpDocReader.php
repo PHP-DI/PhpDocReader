@@ -110,9 +110,9 @@ class PhpDocReader
                 throw new AnnotationException(sprintf(
                     'The @var annotation on %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
-                    $type,
                     $class->name,
-                    $property->getName()
+                    $property->getName(),
+                    $type
                 ));
             }
         }
@@ -120,9 +120,9 @@ class PhpDocReader
         if (!$this->classExists($type)) {
             throw new AnnotationException(sprintf(
                 'The @var annotation on %s::%s contains a non existent class "%s"',
-                $type,
                 $class->name,
-                $property->getName()
+                $property->getName(),
+                $type
             ));
         }
 
@@ -209,23 +209,23 @@ class PhpDocReader
 
             if (!$found) {
                 throw new AnnotationException(sprintf(
-                    'The @param annotation for parameter %s of %s::%s contains a non existent class "%s". '
+                    'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
-                    $type,
                     $parameterName,
                     $class->name,
-                    $method->name
+                    $method->name,
+                    $type
                 ));
             }
         }
 
         if (!$this->classExists($type)) {
             throw new AnnotationException(sprintf(
-                'The @param annotation for parameter %s of %s::%s contains a non existent class "%s"',
-                $type,
+                'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s"',
                 $parameterName,
                 $class->name,
-                $method->name
+                $method->name,
+                $type
             ));
         }
 
