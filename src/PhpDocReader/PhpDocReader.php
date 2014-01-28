@@ -74,6 +74,11 @@ class PhpDocReader
             return null;
         }
 
+        // Ignore types containing special characters ([], <> ...)
+        if (! preg_match('/^[a-zA-Z0-9\\\\]+$/', $type)) {
+            return null;
+        }
+
         $class = $property->getDeclaringClass();
 
         // If the class name is not fully qualified (i.e. doesn't start with a \)
@@ -172,6 +177,11 @@ class PhpDocReader
 
         // Ignore primitive types
         if (in_array($type, $this->ignoredTypes)) {
+            return null;
+        }
+
+        // Ignore types containing special characters ([], <> ...)
+        if (! preg_match('/^[a-zA-Z0-9\\\\]+$/', $type)) {
             return null;
         }
 
