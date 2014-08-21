@@ -32,9 +32,21 @@ class PhpDocReader
         'resource',
     );
 
-    public function __construct()
+	/**
+	 * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations)
+	 * 
+	 * @var bool
+	 */
+	private $ignorePhpDocErrors;
+	
+	/**
+	 * 
+	 * @param bool $ignorePhpDocErrors
+	 */
+    public function __construct($ignorePhpDocErrors = false)
     {
         $this->phpParser = new PhpParser();
+		$this->ignorePhpDocErrors = $ignorePhpDocErrors;
     }
 
     /**
@@ -111,7 +123,7 @@ class PhpDocReader
                 $found = true;
             }
 
-            if (!$found) {
+            if (!$found && !$this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
                     'The @var annotation on %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
@@ -122,7 +134,7 @@ class PhpDocReader
             }
         }
 
-        if (!$this->classExists($type)) {
+        if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
             throw new AnnotationException(sprintf(
                 'The @var annotation on %s::%s contains a non existent class "%s"',
                 $class->name,
@@ -219,7 +231,7 @@ class PhpDocReader
                 $found = true;
             }
 
-            if (!$found) {
+            if (!$found && !$this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
                     'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
@@ -231,7 +243,7 @@ class PhpDocReader
             }
         }
 
-        if (!$this->classExists($type)) {
+        if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
             throw new AnnotationException(sprintf(
                 'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s"',
                 $parameterName,
