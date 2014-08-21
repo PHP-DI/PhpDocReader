@@ -32,21 +32,21 @@ class PhpDocReader
         'resource',
     );
 
-	/**
-	 * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations)
-	 * 
-	 * @var bool
-	 */
-	private $ignorePhpDocErrors;
-	
-	/**
-	 * 
-	 * @param bool $ignorePhpDocErrors
-	 */
+    /**
+     * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations)
+     * 
+     * @var bool
+     */
+    private $ignorePhpDocErrors;
+
+    /**
+     * 
+     * @param bool $ignorePhpDocErrors
+     */
     public function __construct($ignorePhpDocErrors = false)
     {
         $this->phpParser = new PhpParser();
-		$this->ignorePhpDocErrors = $ignorePhpDocErrors;
+        $this->ignorePhpDocErrors = $ignorePhpDocErrors;
     }
 
     /**
