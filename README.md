@@ -1,7 +1,7 @@
 # PhpDocReader
 
-[![Build Status](https://travis-ci.org/mnapoli/PhpDocReader.png)](https://img.shields.io/travis/mnapoli/PhpDocReader.svg)
-[![Coverage Status](https://coveralls.io/repos/mnapoli/PhpDocReader/badge.png)](https://img.shields.io/coveralls/mnapoli/PhpDocReader.svg)
+[![Build Status](https://img.shields.io/travis/mnapoli/PhpDocReader.svg)](https://travis-ci.org/mnapoli/PhpDocReader)
+[![Coverage Status](https://img.shields.io/coveralls/mnapoli/PhpDocReader.svg)](https://coveralls.io/r/mnapoli/PhpDocReader)
 ![](https://img.shields.io/packagist/dt/mnapoli/PhpDocReader.svg)
 
 This project is used by:
