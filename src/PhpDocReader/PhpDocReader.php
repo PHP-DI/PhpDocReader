@@ -2,7 +2,7 @@
 
 namespace PhpDocReader;
 
-use Doctrine\Common\Annotations\PhpParser;
+use PhpDocReader\PhpParser\UseStatementParser;
 use ReflectionParameter;
 use ReflectionProperty;
 
@@ -14,9 +14,9 @@ use ReflectionProperty;
 class PhpDocReader
 {
     /**
-     * @var PhpParser
+     * @var UseStatementParser
      */
-    private $phpParser;
+    private $parser;
 
     private $ignoredTypes = array(
         'bool',
@@ -45,7 +45,7 @@ class PhpDocReader
      */
     public function __construct($ignorePhpDocErrors = false)
     {
-        $this->phpParser = new PhpParser();
+        $this->parser = new UseStatementParser();
         $this->ignorePhpDocErrors = $ignorePhpDocErrors;
     }
 
@@ -99,7 +99,7 @@ class PhpDocReader
             $loweredAlias = strtolower($alias);
 
             // Retrieve "use" statements
-            $uses = $this->phpParser->parseClass($property->getDeclaringClass());
+            $uses = $this->parser->parseUseStatements($property->getDeclaringClass());
 
             $found = false;
 
@@ -207,7 +207,7 @@ class PhpDocReader
             $loweredAlias = strtolower($alias);
 
             // Retrieve "use" statements
-            $uses = $this->phpParser->parseClass($class);
+            $uses = $this->parser->parseUseStatements($class);
 
             $found = false;
 
