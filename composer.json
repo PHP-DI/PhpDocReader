@@ -5,13 +5,20 @@
     "keywords": ["phpdoc", "reflection"],
     "license": "MIT",
     "autoload": {
-        "psr-0": {
-            "PhpDocReader": "src/",
-            "UnitTest": "tests/"
+        "psr-4": {
+            "PhpDocReader\\": "src/PhpDocReader"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "UnitTest\\PhpDocReader\\": "tests/"
         }
     },
     "require": {
         "php": ">=5.3.0",
         "doctrine/annotations": "1.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.6"
     }
 }
