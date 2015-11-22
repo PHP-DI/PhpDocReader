@@ -264,7 +264,7 @@ class PhpDocReader
     private function tryResolveFqnInTraits($type, ReflectionClass $class, Reflector $member)
     {
         /** @var ReflectionClass[] $traits */
-        $traits = [];
+        $traits = array();
         
         while ($class) {
             $traits = array_merge($traits, $class->getTraits());
