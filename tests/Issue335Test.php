@@ -12,6 +12,8 @@ use UnitTest\PhpDocReader\FixturesIssue335\Class3;
  */
 class Issue335Test extends PHPUnit_Framework_TestCase
 {
+    const CLASS_X = 'UnitTest\PhpDocReader\FixturesIssue335\ClassX';
+
     /**
      * This test ensures that namespaces are properly resolved for aliases that are defined in traits.
      * @see https://github.com/PHP-DI/PHP-DI/issues/335
@@ -29,13 +31,13 @@ class Issue335Test extends PHPUnit_Framework_TestCase
 
         $class = new ReflectionClass($target);
 
-        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue335\ClassX', $parser->getPropertyClass($class->getProperty("propTrait1")));
-        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue335\ClassX', $parser->getPropertyClass($class->getProperty("propTrait2")));
+        $this->assertEquals(self::CLASS_X, $parser->getPropertyClass($class->getProperty("propTrait1")));
+        $this->assertEquals(self::CLASS_X, $parser->getPropertyClass($class->getProperty("propTrait2")));
         
         $params = $class->getMethod("methodTrait1")->getParameters();
-        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue335\ClassX', $parser->getParameterClass($params[0]));
+        $this->assertEquals(self::CLASS_X, $parser->getParameterClass($params[0]));
         
         $params = $class->getMethod("methodTrait2")->getParameters();
-        $this->assertEquals('UnitTest\PhpDocReader\FixturesIssue335\ClassX', $parser->getParameterClass($params[0]));
+        $this->assertEquals(self::CLASS_X, $parser->getParameterClass($params[0]));
     }
 }
