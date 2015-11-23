@@ -98,6 +98,7 @@ class PhpDocReader
 
         // If the class name is not fully qualified (i.e. doesn't start with a \)
         if ($type[0] !== '\\') {
+            // Try to resolve the FQN using the class context
             $resolvedType = $this->tryResolveFqn($type, $class, $property);
 
             if (!$resolvedType && !$this->ignorePhpDocErrors) {
@@ -182,6 +183,7 @@ class PhpDocReader
 
         // If the class name is not fully qualified (i.e. doesn't start with a \)
         if ($type[0] !== '\\') {
+            // Try to resolve the FQN using the class context
             $resolvedType = $this->tryResolveFqn($type, $class, $parameter);
          
             if (!$resolvedType && !$this->ignorePhpDocErrors) {
@@ -251,6 +253,7 @@ class PhpDocReader
         if (version_compare(phpversion(), '5.4.0', '<')) {
             return null;
         } else {
+            // If all fail, try resolving through related traits
             return $this->tryResolveFqnInTraits($type, $class, $member);
         }
     }
@@ -269,13 +272,15 @@ class PhpDocReader
     {
         /** @var ReflectionClass[] $traits */
         $traits = array();
-        
+
+        // Get traits for the class and its parents
         while ($class) {
             $traits = array_merge($traits, $class->getTraits());
             $class = $class->getParentClass();
         }
         
         foreach ($traits as $trait) {
+            // Eliminate traits that don't have the property/method/parameter
             if ($member instanceof ReflectionProperty && !$trait->hasProperty($member->name)) {
                 continue;
             } elseif ($member instanceof ReflectionMethod && !$trait->hasMethod($member->name)) {
@@ -283,7 +288,8 @@ class PhpDocReader
             } elseif ($member instanceof ReflectionParameter && !$trait->hasMethod($member->getDeclaringFunction()->name)) {
                 continue;
             }
-            
+
+            // Run the resolver again with the ReflectionClass instance for the trait
             $resolvedType = $this->tryResolveFqn($type, $trait, $member);
             
             if ($resolvedType) {
