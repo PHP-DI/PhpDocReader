@@ -78,11 +78,7 @@ class PhpDocReader
     public function getPropertyClass(ReflectionProperty $property)
     {
         // Get the content of the @var annotation
-        if (preg_match('/@var\s+([^\s]+)/', $property->getDocComment(), $matches)) {
-            list(, $type) = $matches;
-        } else {
-            return null;
-        }
+        $type = $this->getTag('var', $property->getDocComment());
 
         // Ignore primitive types
         if (in_array($type, $this->ignoredTypes)) {
@@ -99,7 +95,7 @@ class PhpDocReader
         // If the class name is not fully qualified (i.e. doesn't start with a \)
         if ($type[0] !== '\\') {
             // Try to resolve the FQN using the class context
-            $resolvedType = $this->tryResolveFqn($type, $class, $property);
+            $resolvedType = $this->resolveType($type, $class, $property);
 
             if (!$resolvedType && !$this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
@@ -163,11 +159,7 @@ class PhpDocReader
         $parameterName = $parameter->name;
         // Get the content of the @param annotation
         $method = $parameter->getDeclaringFunction();
-        if (preg_match('/@param\s+([^\s]+)\s+\$' . $parameterName . '/', $method->getDocComment(), $matches)) {
-            list(, $type) = $matches;
-        } else {
-            return null;
-        }
+        $type = $this->getTag('param', $method->getDocComment(), $parameterName);
 
         // Ignore primitive types
         if (in_array($type, $this->ignoredTypes)) {
@@ -184,7 +176,7 @@ class PhpDocReader
         // If the class name is not fully qualified (i.e. doesn't start with a \)
         if ($type[0] !== '\\') {
             // Try to resolve the FQN using the class context
-            $resolvedType = $this->tryResolveFqn($type, $class, $parameter);
+            $resolvedType = $this->resolveType($type, $class, $parameter);
          
             if (!$resolvedType && !$this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
@@ -216,17 +208,112 @@ class PhpDocReader
         return $type;
     }
 
+    public function getMethodReturnClass(ReflectionMethod $method)
+    {/*
+        // Get the content of the @var annotation
+        $type = $this->getTag('return', $method->getDocComment());
+
+        if (($pos = strpos($type, '|')) !== false) {
+            $type = substr($type, 0, $pos);
+        }
+
+        $class = $method->getDeclaringClass();
+        try {
+            $type = $this->resolveType($type, $class, $method);
+
+            if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
+                throw new AnnotationException(sprintf(
+                    'The @return annotation on %s::%s contains a non existent class "%s"',
+                    $class->name,
+                    $method->getName(),
+                    $type
+                ));
+            }
+
+            // Remove the leading \ (FQN shouldn't contain it)
+            $type = ltrim($type, '\\');
+
+            return $type;
+
+        } catch (CannotResolveException $e) {
+            if ($this->ignorePhpDocErrors) {
+                return null;
+            }
+            throw new AnnotationException(sprintf(
+                'The @return annotation on %s::%s contains a non existent class "%s". '
+                . 'Did you maybe forget to add a "use" statement for this annotation?',
+                $class->name,
+                $method->getName(),
+                $type
+            ));
+        }*/
+    }
+
+    public function getMethodReturnClasses(ReflectionMethod $method)
+    {
+
+    }
+
+    /**
+     * @param string $tagName
+     * @param string $docBlock
+     * @param string|null $variableName
+     *
+     * @return string
+     */
+    private function getTag($tagName, $docBlock, $variableName = null)
+    {
+        $tags = $this->getTags($tagName, $docBlock, $variableName);
+        return $tags ? $tags[0] : null;
+    }
+
+    /**
+     * @param string $tagName
+     * @param string $docBlock
+     * @param string|null $variableName
+     *
+     * @return string[]
+     */
+    private function getTags($tagName, $docBlock, $variableName = null)
+    {
+        if ($variableName === null) {
+            // Generic tag search
+            $expression = '/@' . preg_quote($tagName) . '\s+([^\s]+)/';
+        } else {
+            // Look for a tag for a specific variable
+            $expression = '/@' . preg_quote($tagName) . '\s+([^\s]+)\s+\$' . preg_quote($variableName) . '/';
+        }
+        return preg_match_all($expression, $docBlock, $matches) ? $matches[1] : null;
+    }
+
     /**
      * Attempts to resolve the FQN of the provided $type based on the $class and $member context.
      *
      * @param string $type
      * @param ReflectionClass $class
      * @param Reflector $member
-     * 
-     * @return string|null Fully qualified name of the type, or null if it could not be resolved
+     *
+     * @return null|string Fully qualified name of the type, or null if it could not be resolved
+     *
+     * @throws CannotResolveException
      */
-    private function tryResolveFqn($type, ReflectionClass $class, Reflector $member) 
+    private function resolveType($type, ReflectionClass $class, Reflector $member)
     {
+        // Ignore primitive types
+        if (in_array($type, $this->ignoredTypes)) {
+            return null;
+        }
+
+        // Ignore types containing special characters ([], <> ...)
+        if (! preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
+            return null;
+        }
+
+        // Return if the class name is already fully qualified (i.e. starts with a \)
+        if ($type[0] === '\\') {
+            return $type;
+        }
+
         $alias = ($pos = strpos($type, '\\')) === false ? $type : substr($type, 0, $pos);
         $loweredAlias = strtolower($alias);
 
@@ -242,18 +329,22 @@ class PhpDocReader
             }
         } elseif ($this->classExists($class->getNamespaceName() . '\\' . $type)) {
             return $class->getNamespaceName() . '\\' . $type;
-        } elseif (isset($uses['__NAMESPACE__']) && $this->classExists($uses['__NAMESPACE__'] . '\\' . $type)) {
+
+        // What is the scenario for this statement? This block is not hit in the unit tests.
+        /*} elseif (isset($uses['__NAMESPACE__']) && $this->classExists($uses['__NAMESPACE__'] . '\\' . $type)) {
             // Class namespace
-            return $uses['__NAMESPACE__'] . '\\' . $type;
+            return $uses['__NAMESPACE__'] . '\\' . $type;*/
+
         } elseif ($this->classExists($type)) {
             // No namespace
             return $type;
         }
 
         if (version_compare(phpversion(), '5.4.0', '<')) {
-            return null;
+            throw new CannotResolveException($type);
         } else {
             // If all fail, try resolving through related traits
+            return null;
             return $this->tryResolveFqnInTraits($type, $class, $member);
         }
     }
@@ -261,12 +352,14 @@ class PhpDocReader
     /**
      * Attempts to resolve the FQN of the provided $type based on the $class and $member context, specifically searching
      * through the traits that are used by the provided $class.
-     * 
+     *
      * @param string $type
      * @param ReflectionClass $class
      * @param Reflector $member
      *
-     * @return string|null Fully qualified name of the type, or null if it could not be resolved
+     * @return null|string Fully qualified name of the type, or null if it could not be resolved
+     *
+     * @throws CannotResolveException
      */
     private function tryResolveFqnInTraits($type, ReflectionClass $class, Reflector $member)
     {
@@ -290,13 +383,14 @@ class PhpDocReader
             }
 
             // Run the resolver again with the ReflectionClass instance for the trait
-            $resolvedType = $this->tryResolveFqn($type, $trait, $member);
+            $resolvedType = $this->resolveType($type, $trait, $member);
             
             if ($resolvedType) {
                 return $resolvedType;
             }
         }
-        return null;
+
+        throw new CannotResolveException($type);
     }
 
     /**
@@ -306,5 +400,16 @@ class PhpDocReader
     private function classExists($class)
     {
         return class_exists($class) || interface_exists($class);
+    }
+}
+
+class CannotResolveException extends \Exception
+{
+    public $type;
+
+    public function __construct($type)
+    {
+        parent::__construct();
+        $this->type = $type;
     }
 }
