@@ -247,8 +247,12 @@ class PhpDocReader
             // No namespace
             return $type;
         }
-        
-        return $this->tryResolveFqnInTraits($type, $class, $member);
+
+        if (version_compare(phpversion(), '5.4.0', '<')) {
+            return null;
+        } else {
+            return $this->tryResolveFqnInTraits($type, $class, $member);
+        }
     }
 
     /**

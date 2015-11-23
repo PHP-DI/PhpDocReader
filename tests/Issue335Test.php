@@ -18,6 +18,11 @@ class Issue335Test extends PHPUnit_Framework_TestCase
      */
     public function testNamespaceResolutionForTraits()
     {
+        if (version_compare(phpversion(), '5.4.0', '<')) {
+            $this->markTestSkipped('Traits were introduced in PHP 5.4');
+            return;
+        }
+
         $parser = new PhpDocReader();
 
         $target = new Class3();
