@@ -16,6 +16,10 @@ use Reflector;
  */
 class PhpDocReader
 {
+    const MT_IGNORE = 0;
+    const MT_RESOLVE_FIRST = 1;
+    const MT_RESOLVE_ALL = 2;
+
     /**
      * @var UseStatementParser
      */
@@ -36,20 +40,32 @@ class PhpDocReader
     );
 
     /**
-     * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations)
-     * 
+     * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations).
+     *
      * @var bool
      */
     private $ignorePhpDocErrors;
 
     /**
-     * 
-     * @param bool $ignorePhpDocErrors
+     * Configure the way multi-type declarations are handled (e.g. string|null|SomeOtherType).
+     * Options:
+     *     - MT_IGNORE => Don't resolve, and return null
+     *     - MT_RESOLVE_FIRST => Resolve and return the first type (may be null if the type is ignored)
+     *     - MT_RESOLVE_ALL => Resolve all types and return an array
+     *
+     * @var int
      */
-    public function __construct($ignorePhpDocErrors = false)
+    private $multiTypeBehaviour;
+
+    /**
+     * @param bool $ignorePhpDocErrors
+     * @param int $multiTypeBehaviour
+     */
+    public function __construct($ignorePhpDocErrors = false, $multiTypeBehaviour = self::MT_IGNORE)
     {
         $this->parser = new UseStatementParser();
         $this->ignorePhpDocErrors = $ignorePhpDocErrors;
+        $this->multiTypeBehaviour = $multiTypeBehaviour;
     }
 
     /**
@@ -86,7 +102,7 @@ class PhpDocReader
         }
 
         // Ignore types containing special characters ([], <> ...)
-        if (! preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
+        if (!preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
             return null;
         }
 
@@ -100,13 +116,13 @@ class PhpDocReader
             if (!$resolvedType && !$this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
                     'The @var annotation on %s::%s contains a non existent class "%s". '
-                        . 'Did you maybe forget to add a "use" statement for this annotation?',
+                    .'Did you maybe forget to add a "use" statement for this annotation?',
                     $class->name,
                     $property->getName(),
                     $type
                 ));
             }
-            
+
             $type = $resolvedType;
         }
 
@@ -167,7 +183,7 @@ class PhpDocReader
         }
 
         // Ignore types containing special characters ([], <> ...)
-        if (! preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
+        if (!preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
             return null;
         }
 
@@ -177,18 +193,18 @@ class PhpDocReader
         if ($type[0] !== '\\') {
             // Try to resolve the FQN using the class context
             $resolvedType = $this->resolveType($type, $class, $parameter);
-         
+
             if (!$resolvedType && !$this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
                     'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s". '
-                        . 'Did you maybe forget to add a "use" statement for this annotation?',
+                    .'Did you maybe forget to add a "use" statement for this annotation?',
                     $parameterName,
                     $class->name,
                     $method->name,
                     $type
                 ));
             }
-            
+
             $type = $resolvedType;
         }
 
@@ -247,6 +263,9 @@ class PhpDocReader
                 $type
             ));
         }*/
+
+        $type = $this->getTag('return', $method->getDocComment());
+
     }
 
     public function getMethodReturnClasses(ReflectionMethod $method)
@@ -264,6 +283,7 @@ class PhpDocReader
     private function getTag($tagName, $docBlock, $variableName = null)
     {
         $tags = $this->getTags($tagName, $docBlock, $variableName);
+
         return $tags ? $tags[0] : null;
     }
 
@@ -278,11 +298,12 @@ class PhpDocReader
     {
         if ($variableName === null) {
             // Generic tag search
-            $expression = '/@' . preg_quote($tagName) . '\s+([^\s]+)/';
+            $expression = '/@'.preg_quote($tagName).'\s+([^\s]+)/';
         } else {
             // Look for a tag for a specific variable
-            $expression = '/@' . preg_quote($tagName) . '\s+([^\s]+)\s+\$' . preg_quote($variableName) . '/';
+            $expression = '/@'.preg_quote($tagName).'\s+([^\s]+)\s+\$'.preg_quote($variableName).'/';
         }
+
         return preg_match_all($expression, $docBlock, $matches) ? $matches[1] : null;
     }
 
@@ -299,52 +320,43 @@ class PhpDocReader
      */
     private function resolveType($type, ReflectionClass $class, Reflector $member)
     {
-        // Ignore primitive types
-        if (in_array($type, $this->ignoredTypes)) {
+        if (!$this->isSupportedType($type)) {
             return null;
         }
 
-        // Ignore types containing special characters ([], <> ...)
-        if (! preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
-            return null;
-        }
-
-        // Return if the class name is already fully qualified (i.e. starts with a \)
-        if ($type[0] === '\\') {
+        if ($this->isFullyQualified($type)) {
             return $type;
         }
 
-        $alias = ($pos = strpos($type, '\\')) === false ? $type : substr($type, 0, $pos);
-        $loweredAlias = strtolower($alias);
+        list($alias, $postfix) = explode('\\', $type, 2);
+        $alias = strtolower($alias);
 
         // Retrieve "use" statements
         $uses = $this->parser->parseUseStatements($class);
 
-        if (isset($uses[$loweredAlias])) {
+        if (isset($uses[$alias])) {
             // Imported classes
+            return $postfix === null
             if ($pos !== false) {
-                return $uses[$loweredAlias] . substr($type, $pos);
+                return $uses[$alias] . $postfix;
             } else {
-                return $uses[$loweredAlias];
+                return $uses[$alias];
             }
-        } elseif ($this->classExists($class->getNamespaceName() . '\\' . $type)) {
-            return $class->getNamespaceName() . '\\' . $type;
-
-        // What is the scenario for this statement? This block is not hit in the unit tests.
-        /*} elseif (isset($uses['__NAMESPACE__']) && $this->classExists($uses['__NAMESPACE__'] . '\\' . $type)) {
-            // Class namespace
-            return $uses['__NAMESPACE__'] . '\\' . $type;*/
-
+        } elseif ($this->classExists($class->getNamespaceName().'\\'.$type)) {
+            return $class->getNamespaceName().'\\'.$type;
         } elseif ($this->classExists($type)) {
             // No namespace
             return $type;
         }
 
         if (version_compare(phpversion(), '5.4.0', '<')) {
-            throw new CannotResolveException($type);
+            if ($this->ignorePhpDocErrors) {
+                return null;
+            } else {
+                throw new CannotResolveException($type, $member);
+            }
         } else {
             // If all fail, try resolving through related traits
-            return null;
             return $this->tryResolveFqnInTraits($type, $class, $member);
         }
     }
@@ -371,7 +383,7 @@ class PhpDocReader
             $traits = array_merge($traits, $class->getTraits());
             $class = $class->getParentClass();
         }
-        
+
         foreach ($traits as $trait) {
             // Eliminate traits that don't have the property/method/parameter
             if ($member instanceof ReflectionProperty && !$trait->hasProperty($member->name)) {
@@ -384,13 +396,52 @@ class PhpDocReader
 
             // Run the resolver again with the ReflectionClass instance for the trait
             $resolvedType = $this->resolveType($type, $trait, $member);
-            
+
             if ($resolvedType) {
                 return $resolvedType;
             }
         }
 
-        throw new CannotResolveException($type);
+        if ($this->ignorePhpDocErrors) {
+            return null;
+        } else {
+            throw new CannotResolveException($type, $member);
+        }
+    }
+
+    /**
+     * Determines whether the provided name is fully qualified.
+     *
+     * @param string $name
+     *
+     * @return bool Is the name fully qualified?
+     */
+    private function isFullyQualified($name)
+    {
+        return $name[0] === '\\';
+    }
+
+    /**
+     * Determines whether the provided type is supported by the resolver.
+     *
+     * @param string $type
+     *
+     * @return bool Is the type supported?
+     */
+    private function isSupportedType($type)
+    {
+        return !in_array($type, $this->ignoredTypes)        // Exclude primitive types
+            && preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type);  // Exclude types containing special characters ([], <> ...)
+    }
+
+    private function isMultiTypeDeclaration($value)
+    {
+        return strpos($value, '|') !== false;
+    }
+
+    private function extractMultiType($declaration)
+    {
+        return explode('|', $declaration);
     }
 
     /**
@@ -400,16 +451,5 @@ class PhpDocReader
     private function classExists($class)
     {
         return class_exists($class) || interface_exists($class);
-    }
-}
-
-class CannotResolveException extends \Exception
-{
-    public $type;
-
-    public function __construct($type)
-    {
-        parent::__construct();
-        $this->type = $type;
     }
 }
