@@ -16,15 +16,22 @@ use Reflector;
  */
 class PhpDocReader
 {
-    const MT_IGNORE = 0;
-    const MT_RESOLVE_FIRST = 1;
-    const MT_RESOLVE_ALL = 2;
+    const TAG_RETURN = 'return';
+    const TAG_PROPERTY = 'var';
+    const TAG_PARAMETER = 'param';
 
     /**
-     * @var UseStatementParser
+     * Parser for use-statements.
+     *
+     * @var UseStatementParser $parser
      */
     private $parser;
 
+    /**
+     * List of types that do not exist as classes or interfaces.
+     *
+     * @var array $ignoredTypes
+     */
     private $ignoredTypes = array(
         'bool',
         'boolean',
@@ -42,30 +49,17 @@ class PhpDocReader
     /**
      * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations).
      *
-     * @var bool
+     * @var bool $ignorePhpDocErrors
      */
     private $ignorePhpDocErrors;
 
     /**
-     * Configure the way multi-type declarations are handled (e.g. string|null|SomeOtherType).
-     * Options:
-     *     - MT_IGNORE => Don't resolve, and return null
-     *     - MT_RESOLVE_FIRST => Resolve and return the first type (may be null if the type is ignored)
-     *     - MT_RESOLVE_ALL => Resolve all types and return an array
-     *
-     * @var int
-     */
-    private $multiTypeBehaviour;
-
-    /**
      * @param bool $ignorePhpDocErrors
-     * @param int $multiTypeBehaviour
      */
-    public function __construct($ignorePhpDocErrors = false, $multiTypeBehaviour = self::MT_IGNORE)
+    public function __construct($ignorePhpDocErrors = false)
     {
         $this->parser = new UseStatementParser();
         $this->ignorePhpDocErrors = $ignorePhpDocErrors;
-        $this->multiTypeBehaviour = $multiTypeBehaviour;
     }
 
     /**
@@ -74,7 +68,7 @@ class PhpDocReader
      * @param ReflectionProperty $property
      *
      * @throws AnnotationException
-     * @return string|null Type of the property (content of var annotation)
+     * @return null|string Type of the property (content of var annotation)
      *
      * @deprecated Use getPropertyClass instead.
      */
@@ -89,56 +83,24 @@ class PhpDocReader
      * @param ReflectionProperty $property
      *
      * @throws AnnotationException
-     * @return string|null Type of the property (content of var annotation)
+     * @return null|string Type of the property (content of var annotation)
      */
     public function getPropertyClass(ReflectionProperty $property)
     {
-        // Get the content of the @var annotation
-        $type = $this->getTag('var', $property->getDocComment());
+        return $this->parseTagType($property, self::TAG_PROPERTY);
+    }
 
-        // Ignore primitive types
-        if (in_array($type, $this->ignoredTypes)) {
-            return null;
-        }
-
-        // Ignore types containing special characters ([], <> ...)
-        if (!preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
-            return null;
-        }
-
-        $class = $property->getDeclaringClass();
-
-        // If the class name is not fully qualified (i.e. doesn't start with a \)
-        if ($type[0] !== '\\') {
-            // Try to resolve the FQN using the class context
-            $resolvedType = $this->resolveType($type, $class, $property);
-
-            if (!$resolvedType && !$this->ignorePhpDocErrors) {
-                throw new AnnotationException(sprintf(
-                    'The @var annotation on %s::%s contains a non existent class "%s". '
-                    .'Did you maybe forget to add a "use" statement for this annotation?',
-                    $class->name,
-                    $property->getName(),
-                    $type
-                ));
-            }
-
-            $type = $resolvedType;
-        }
-
-        if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
-            throw new AnnotationException(sprintf(
-                'The @var annotation on %s::%s contains a non existent class "%s"',
-                $class->name,
-                $property->getName(),
-                $type
-            ));
-        }
-
-        // Remove the leading \ (FQN shouldn't contain it)
-        $type = ltrim($type, '\\');
-
-        return $type;
+    /**
+     * Parse the docblock of the property to get all classes declared in the var annotation.
+     *
+     * @param ReflectionProperty $property
+     *
+     * @return string[]
+     * @throws InvalidClassException
+     */
+    public function getPropertyClasses(ReflectionProperty $property)
+    {
+        return $this->parseTagTypes($property, self::TAG_PROPERTY);
     }
 
     /**
@@ -147,7 +109,7 @@ class PhpDocReader
      * @param ReflectionParameter $parameter
      *
      * @throws AnnotationException
-     * @return string|null Type of the property (content of var annotation)
+     * @return null|string Type of the property (content of var annotation)
      *
      * @deprecated Use getParameterClass instead.
      */
@@ -157,153 +119,163 @@ class PhpDocReader
     }
 
     /**
-     * Parse the docblock of the property to get the class of the param annotation.
+     * Parse the docblock of the method to get the class of the param annotation.
      *
      * @param ReflectionParameter $parameter
      *
      * @throws AnnotationException
-     * @return string|null Type of the property (content of var annotation)
+     * @return null|string Type of the property (content of var annotation)
      */
     public function getParameterClass(ReflectionParameter $parameter)
     {
-        // Use reflection
-        $parameterClass = $parameter->getClass();
-        if ($parameterClass !== null) {
-            return $parameterClass->name;
-        }
-
-        $parameterName = $parameter->name;
-        // Get the content of the @param annotation
-        $method = $parameter->getDeclaringFunction();
-        $type = $this->getTag('param', $method->getDocComment(), $parameterName);
-
-        // Ignore primitive types
-        if (in_array($type, $this->ignoredTypes)) {
-            return null;
-        }
-
-        // Ignore types containing special characters ([], <> ...)
-        if (!preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type)) {
-            return null;
-        }
-
-        $class = $parameter->getDeclaringClass();
-
-        // If the class name is not fully qualified (i.e. doesn't start with a \)
-        if ($type[0] !== '\\') {
-            // Try to resolve the FQN using the class context
-            $resolvedType = $this->resolveType($type, $class, $parameter);
-
-            if (!$resolvedType && !$this->ignorePhpDocErrors) {
-                throw new AnnotationException(sprintf(
-                    'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s". '
-                    .'Did you maybe forget to add a "use" statement for this annotation?',
-                    $parameterName,
-                    $class->name,
-                    $method->name,
-                    $type
-                ));
-            }
-
-            $type = $resolvedType;
-        }
-
-        if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
-            throw new AnnotationException(sprintf(
-                'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s"',
-                $parameterName,
-                $class->name,
-                $method->name,
-                $type
-            ));
-        }
-
-        // Remove the leading \ (FQN shouldn't contain it)
-        $type = ltrim($type, '\\');
-
-        return $type;
-    }
-
-    public function getMethodReturnClass(ReflectionMethod $method)
-    {/*
-        // Get the content of the @var annotation
-        $type = $this->getTag('return', $method->getDocComment());
-
-        if (($pos = strpos($type, '|')) !== false) {
-            $type = substr($type, 0, $pos);
-        }
-
-        $class = $method->getDeclaringClass();
-        try {
-            $type = $this->resolveType($type, $class, $method);
-
-            if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
-                throw new AnnotationException(sprintf(
-                    'The @return annotation on %s::%s contains a non existent class "%s"',
-                    $class->name,
-                    $method->getName(),
-                    $type
-                ));
-            }
-
-            // Remove the leading \ (FQN shouldn't contain it)
-            $type = ltrim($type, '\\');
-
-            return $type;
-
-        } catch (CannotResolveException $e) {
-            if ($this->ignorePhpDocErrors) {
-                return null;
-            }
-            throw new AnnotationException(sprintf(
-                'The @return annotation on %s::%s contains a non existent class "%s". '
-                . 'Did you maybe forget to add a "use" statement for this annotation?',
-                $class->name,
-                $method->getName(),
-                $type
-            ));
-        }*/
-
-        $type = $this->getTag('return', $method->getDocComment());
-
-    }
-
-    public function getMethodReturnClasses(ReflectionMethod $method)
-    {
-
+        return $this->parseTagType($parameter, self::TAG_PARAMETER);
     }
 
     /**
-     * @param string $tagName
-     * @param string $docBlock
-     * @param string|null $variableName
+     * Parse the docblock of the method to get all classes declared in the param annotation.
      *
-     * @return string
+     * @param ReflectionParameter $parameter
+     *
+     * @return string[]
+     * @throws InvalidClassException
      */
-    private function getTag($tagName, $docBlock, $variableName = null)
+    public function getParameterClasses(ReflectionParameter $parameter)
     {
-        $tags = $this->getTags($tagName, $docBlock, $variableName);
+        return $this->parseTagTypes($parameter, self::TAG_PARAMETER);
+    }
+
+    /**
+     * Parse the docblock of the method to get the class of the return annotation.
+     *
+     * @param ReflectionMethod $method
+     *
+     * @return null|string
+     * @throws InvalidClassException
+     */
+    public function getMethodReturnClass(ReflectionMethod $method)
+    {
+        return $this->parseTagType($method, self::TAG_RETURN);
+    }
+
+    /**
+     * Parse the docblock of the method to get all classes declared in the return annotation.
+     *
+     * @param ReflectionMethod $method
+     *
+     * @return string[]
+     * @throws InvalidClassException
+     */
+    public function getMethodReturnClasses(ReflectionMethod $method)
+    {
+        return $this->parseTagTypes($method, self::TAG_RETURN);
+    }
+
+    /**
+     * Detects and resolves the type declared by the specified $tagName on the provided $member.
+     *
+     * @param ReflectionProperty|ReflectionMethod|ReflectionParameter $member
+     * @param string $tagName
+     *
+     * @return null|string Resolved type
+     * @throws CannotResolveException
+     * @throws InvalidClassException
+     */
+    private function parseTagType($member, $tagName)
+    {
+        $class = $member->getDeclaringClass();
+
+        $typeDeclaration = $this->getTag($member, $tagName);
+
+        $resolvedType = $this->resolveType($typeDeclaration, $class, $member);
+
+        if ($resolvedType === null) {
+            return null;
+        }
+
+        // Validate resolved type
+        if (!$this->classExists($resolvedType)) {
+            throw new InvalidClassException($resolvedType, $member);
+        }
+
+        // Strip preceding backslash to make a valid FQN
+        return ltrim($resolvedType, '\\');
+    }
+
+    /**
+     * Detects and resolves the types declared by the specified $tagName on the provided $member.
+     *
+     * @param ReflectionProperty|ReflectionMethod|ReflectionParameter $member
+     * @param string $tagName
+     *
+     * @return string[] Array of resolved types
+     * @throws CannotResolveException
+     * @throws InvalidClassException
+     */
+    private function parseTagTypes($member, $tagName)
+    {
+        $class = $member->getDeclaringClass();
+
+        $typeDeclaration = $this->getTag($member, $tagName);
+
+        // Split up type declaration
+        $types = explode('|', $typeDeclaration);
+
+        $result = array();
+        foreach ($types as $type)
+        {
+            $resolvedType = $this->resolveType($type, $class, $member);
+
+            // Skip if null
+            if ($resolvedType === null) {
+                continue;
+            }
+
+            // Validate resolved type
+            if (!$this->classExists($resolvedType)) {
+                throw new InvalidClassException($resolvedType, $member);
+            }
+
+            // Strip preceding backslash to make a valid FQN
+            $result[] = ltrim($resolvedType, '\\');
+        }
+        return $result;
+    }
+
+    /**
+     * Retrieves the type declaration from the first tag of the specified $tagName that are relevant to the provided
+     * $member.
+     *
+     * @param ReflectionProperty|ReflectionMethod|ReflectionParameter $member
+     * @param string $tagName
+     *
+     * @return null|string Type declaration
+     */
+    private function getTag($member, $tagName)
+    {
+        $tags = $this->getTags($member, $tagName);
 
         return $tags ? $tags[0] : null;
     }
 
     /**
-     * @param string $tagName
-     * @param string $docBlock
-     * @param string|null $variableName
+     * Retrieves type declarations from all tags of the specified $tagName that are relevant to the provided $member.
      *
-     * @return string[]
+     * @param ReflectionProperty|ReflectionMethod|ReflectionParameter $member
+     * @param string $tagName
+     *
+     * @return string[] An array of type declarations
      */
-    private function getTags($tagName, $docBlock, $variableName = null)
+    private function getTags($member, $tagName)
     {
-        if ($variableName === null) {
+        if ($member instanceof ReflectionParameter) {
+            // Look for a tag for a specific variable
+            $expression = '/@'.preg_quote($tagName).'\s+([^\s]+)\s+\$' . preg_quote($member->name) . '/';
+            $docBlock = $member->getDeclaringFunction()->getDocComment();
+        } else {
             // Generic tag search
             $expression = '/@'.preg_quote($tagName).'\s+([^\s]+)/';
-        } else {
-            // Look for a tag for a specific variable
-            $expression = '/@'.preg_quote($tagName).'\s+([^\s]+)\s+\$'.preg_quote($variableName).'/';
+            $docBlock = $member->getDocComment();
         }
-
         return preg_match_all($expression, $docBlock, $matches) ? $matches[1] : null;
     }
 
@@ -315,11 +287,15 @@ class PhpDocReader
      * @param Reflector $member
      *
      * @return null|string Fully qualified name of the type, or null if it could not be resolved
-     *
      * @throws CannotResolveException
      */
     private function resolveType($type, ReflectionClass $class, Reflector $member)
     {
+        // Type hint?
+        if ($member instanceof ReflectionParameter && $member->getClass() !== null) {
+            return $member->getClass()->name;
+        }
+
         if (!$this->isSupportedType($type)) {
             return null;
         }
@@ -328,37 +304,40 @@ class PhpDocReader
             return $type;
         }
 
-        list($alias, $postfix) = explode('\\', $type, 2);
+        // Split alias from postfix
+        list($alias, $postfix) = array_pad(explode('\\', $type, 2), 2, null);
         $alias = strtolower($alias);
 
         // Retrieve "use" statements
         $uses = $this->parser->parseUseStatements($class);
 
-        if (isset($uses[$alias])) {
-            // Imported classes
+        // Imported class?
+        if (array_key_exists($alias, $uses)) {
             return $postfix === null
-            if ($pos !== false) {
-                return $uses[$alias] . $postfix;
-            } else {
-                return $uses[$alias];
-            }
-        } elseif ($this->classExists($class->getNamespaceName().'\\'.$type)) {
-            return $class->getNamespaceName().'\\'.$type;
-        } elseif ($this->classExists($type)) {
-            // No namespace
+                ? $uses[$alias]
+                : $uses[$alias] . '\\' . $postfix;
+        }
+
+        // In class namespace?
+        if ($this->classExists($class->getNamespaceName(). '\\' . $type)) {
+            return $class->getNamespaceName() . '\\' . $type;
+        }
+
+        // No namespace?
+        if ($this->classExists($type)) {
             return $type;
         }
 
-        if (version_compare(phpversion(), '5.4.0', '<')) {
-            if ($this->ignorePhpDocErrors) {
-                return null;
-            } else {
-                throw new CannotResolveException($type, $member);
-            }
-        } else {
-            // If all fail, try resolving through related traits
+        // Try resolving through related traits
+        if (version_compare(phpversion(), '5.4.0', '>=')) {
             return $this->tryResolveFqnInTraits($type, $class, $member);
         }
+
+        if ($this->ignorePhpDocErrors) {
+            return null;
+        }
+
+        throw new CannotResolveException($type, $member);
     }
 
     /**
@@ -370,7 +349,6 @@ class PhpDocReader
      * @param Reflector $member
      *
      * @return null|string Fully qualified name of the type, or null if it could not be resolved
-     *
      * @throws CannotResolveException
      */
     private function tryResolveFqnInTraits($type, ReflectionClass $class, Reflector $member)
@@ -404,9 +382,9 @@ class PhpDocReader
 
         if ($this->ignorePhpDocErrors) {
             return null;
-        } else {
-            throw new CannotResolveException($type, $member);
         }
+        
+        throw new CannotResolveException($type, $member);
     }
 
     /**
@@ -434,18 +412,11 @@ class PhpDocReader
             && preg_match('/^[a-zA-Z0-9\\\\_]+$/', $type);  // Exclude types containing special characters ([], <> ...)
     }
 
-    private function isMultiTypeDeclaration($value)
-    {
-        return strpos($value, '|') !== false;
-    }
-
-    private function extractMultiType($declaration)
-    {
-        return explode('|', $declaration);
-    }
-
     /**
+     * Determines whether the provided class exists as a class or interface.
+     *
      * @param string $class
+     *
      * @return bool
      */
     private function classExists($class)

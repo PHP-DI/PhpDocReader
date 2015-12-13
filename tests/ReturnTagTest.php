@@ -16,10 +16,10 @@ class ReturnTagTest extends PHPUnit_Framework_TestCase
     const DP2 = 'UnitTest\PhpDocReader\FixturesReturnTag\DependencyClass2';
 
     /**
-     * This test ensures that the first type in the return tag is properly returned
+     * This test ensures that the return tag is properly returned
      * @see https://github.com/PHP-DI/PhpDocReader/issues/5
      */
-    public function testGetFirstReturnType()
+    public function testGetReturnType()
     {
         $parser = new PhpDocReader();
 
@@ -28,7 +28,7 @@ class ReturnTagTest extends PHPUnit_Framework_TestCase
         $class = new ReflectionClass($target);
 
         $this->assertEquals(self::DP1, $parser->getMethodReturnClass($class->getMethod("singleReturnType")));
-        $this->assertEquals(self::DP1, $parser->getMethodReturnClass($class->getMethod("multipleReturnType")));
+        $this->assertEquals(null, $parser->getMethodReturnClass($class->getMethod("multipleReturnType")));
     }
 
     /**
