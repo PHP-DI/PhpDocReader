@@ -9,10 +9,7 @@ php:
 
 before_script:
   - mkdir -p build/logs
-  - composer require satooshi/php-coveralls:dev-master --dev --no-progress --prefer-source
+  - composer install
 
 script:
-  - phpunit --coverage-clover build/logs/clover.xml
-
-after_script:
-  - php vendor/bin/coveralls -v
+  - phpunit
