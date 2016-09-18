@@ -8,7 +8,6 @@ php:
   - 7.1
 
 before_script:
-  - mkdir -p build/logs
   - composer install
 
 script:
