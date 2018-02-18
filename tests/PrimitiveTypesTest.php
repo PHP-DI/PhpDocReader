@@ -46,6 +46,7 @@ class PrimitiveTypesTest extends \PHPUnit_Framework_TestCase
             'object'   => array('object'),
             'callable' => array('callable'),
             'resource' => array('resource'),
+            'mixed'    => array('mixed'),
         );
     }
 }
