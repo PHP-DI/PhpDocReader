@@ -60,6 +60,11 @@ class Class1
     public $resource;
 
     /**
+     * @var mixed
+     */
+    public $mixed;
+
+    /**
      * @param bool     $bool
      * @param boolean  $boolean
      * @param string   $string
@@ -71,6 +76,7 @@ class Class1
      * @param object   $object
      * @param callable $callable
      * @param resource $resource
+     * @param mixed    $mixed
      */
     public function foo(
         $bool,
@@ -83,7 +89,8 @@ class Class1
         $array,
         $object,
         $callable,
-        $resource
+        $resource,
+        $mixed
     ) {
     }
 } 
