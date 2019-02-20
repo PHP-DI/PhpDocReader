@@ -166,7 +166,7 @@ class PhpDocReader
             $type = $resolvedType;
         }
 
-        if (! $this->classExists($type) && ! $this->ignorePhpDocErrors) {
+        if (! $this->ignorePhpDocErrors && ! $this->classExists($type)) {
             throw new InvalidAnnotation(sprintf(
                 'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s"',
                 $parameterName,
@@ -199,9 +199,8 @@ class PhpDocReader
             // Imported classes
             if ($pos !== false) {
                 return $uses[$loweredAlias] . substr($type, $pos);
-            } else {
-                return $uses[$loweredAlias];
             }
+            return $uses[$loweredAlias];
         } elseif ($this->classExists($class->getNamespaceName() . '\\' . $type)) {
             return $class->getNamespaceName() . '\\' . $type;
         } elseif (isset($uses['__NAMESPACE__']) && $this->classExists($uses['__NAMESPACE__'] . '\\' . $type)) {
@@ -212,12 +211,8 @@ class PhpDocReader
             return $type;
         }
 
-        if (version_compare(phpversion(), '5.4.0', '<')) {
-            return null;
-        } else {
-            // If all fail, try resolving through related traits
-            return $this->tryResolveFqnInTraits($type, $class, $member);
-        }
+        // If all fail, try resolving through related traits
+        return $this->tryResolveFqnInTraits($type, $class, $member);
     }
 
     /**
@@ -241,9 +236,11 @@ class PhpDocReader
             // Eliminate traits that don't have the property/method/parameter
             if ($member instanceof ReflectionProperty && ! $trait->hasProperty($member->name)) {
                 continue;
-            } elseif ($member instanceof ReflectionMethod && ! $trait->hasMethod($member->name)) {
+            }
+            if ($member instanceof ReflectionMethod && ! $trait->hasMethod($member->name)) {
                 continue;
-            } elseif ($member instanceof ReflectionParameter && ! $trait->hasMethod($member->getDeclaringFunction()->name)) {
+            }
+            if ($member instanceof ReflectionParameter && ! $trait->hasMethod($member->getDeclaringFunction()->name)) {
                 continue;
             }
 
@@ -254,6 +251,7 @@ class PhpDocReader
                 return $resolvedType;
             }
         }
+
         return null;
     }
 
