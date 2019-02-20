@@ -48,7 +48,7 @@ class PhpDocReader
      * Parse the docblock of the property to get the class of the var annotation.
      *
      * @return string|null Type of the property (content of var annotation)
-     * @throws AnnotationException
+     * @throws InvalidAnnotation
      *
      * @deprecated Use getPropertyClass instead.
      */
@@ -61,7 +61,7 @@ class PhpDocReader
      * Parse the docblock of the property to get the class of the var annotation.
      *
      * @return string|null Type of the property (content of var annotation)
-     * @throws AnnotationException
+     * @throws InvalidAnnotation
      */
     public function getPropertyClass(ReflectionProperty $property): ?string
     {
@@ -94,7 +94,7 @@ class PhpDocReader
             $resolvedType = $this->tryResolveFqn($type, $class, $property);
 
             if (! $resolvedType && ! $this->ignorePhpDocErrors) {
-                throw new AnnotationException(sprintf(
+                throw new InvalidAnnotation(sprintf(
                     'The @var annotation on %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
                     $class->name,
@@ -107,7 +107,7 @@ class PhpDocReader
         }
 
         if (! $this->classExists($type) && ! $this->ignorePhpDocErrors) {
-            throw new AnnotationException(sprintf(
+            throw new InvalidAnnotation(sprintf(
                 'The @var annotation on %s::%s contains a non existent class "%s"',
                 $class->name,
                 $property->getName(),
@@ -125,7 +125,7 @@ class PhpDocReader
      * Parse the docblock of the property to get the class of the param annotation.
      *
      * @return string|null Type of the property (content of var annotation)
-     * @throws AnnotationException
+     * @throws InvalidAnnotation
      *
      * @deprecated Use getParameterClass instead.
      */
@@ -138,7 +138,7 @@ class PhpDocReader
      * Parse the docblock of the property to get the class of the param annotation.
      *
      * @return string|null Type of the property (content of var annotation)
-     * @throws AnnotationException
+     * @throws InvalidAnnotation
      */
     public function getParameterClass(ReflectionParameter $parameter): ?string
     {
@@ -179,7 +179,7 @@ class PhpDocReader
             $resolvedType = $this->tryResolveFqn($type, $class, $parameter);
 
             if (! $resolvedType && ! $this->ignorePhpDocErrors) {
-                throw new AnnotationException(sprintf(
+                throw new InvalidAnnotation(sprintf(
                     'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
                     $parameterName,
@@ -193,7 +193,7 @@ class PhpDocReader
         }
 
         if (! $this->classExists($type) && ! $this->ignorePhpDocErrors) {
-            throw new AnnotationException(sprintf(
+            throw new InvalidAnnotation(sprintf(
                 'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s"',
                 $parameterName,
                 $class->name,

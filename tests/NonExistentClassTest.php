@@ -13,7 +13,7 @@ use UnitTest\PhpDocReader\FixturesNonExistentClass\Class1;
 class NonExistentClassTest extends TestCase
 {
     /**
-     * @expectedException \PhpDocReader\AnnotationException
+     * @expectedException \PhpDocReader\InvalidAnnotation
      * @expectedExceptionMessage The @var annotation on UnitTest\PhpDocReader\FixturesNonExistentClass\Class1::prop contains a non existent class "Foo". Did you maybe forget to add a "use" statement for this annotation?
      */
     public function testProperties()
@@ -25,7 +25,7 @@ class NonExistentClassTest extends TestCase
     }
 
     /**
-     * @expectedException \PhpDocReader\AnnotationException
+     * @expectedException \PhpDocReader\InvalidAnnotation
      * @expectedExceptionMessage The @param annotation for parameter "param" of UnitTest\PhpDocReader\FixturesNonExistentClass\Class1::foo contains a non existent class "Foo". Did you maybe forget to add a "use" statement for this annotation?
      */
     public function testMethodParameters()
