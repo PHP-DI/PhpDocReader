@@ -17,19 +17,19 @@ class PhpDocReader
     /** @var UseStatementParser */
     private $parser;
 
-    private const IGNORED_TYPES = [
-        'bool',
-        'boolean',
-        'string',
-        'int',
-        'integer',
-        'float',
-        'double',
-        'array',
-        'object',
-        'callable',
-        'resource',
-        'mixed',
+    private const PRIMITIVE_TYPES = [
+        'bool' => 'bool',
+        'boolean' => 'bool',
+        'string' => 'string',
+        'int' => 'int',
+        'integer' => 'int',
+        'float' => 'float',
+        'double' => 'float',
+        'array' => 'array',
+        'object' => 'object',
+        'callable' => 'callable',
+        'resource' => 'resource',
+        'mixed' => 'mixed',
     ];
 
     /** @var bool */
@@ -45,12 +45,28 @@ class PhpDocReader
     }
 
     /**
+     * Parse the docblock of the property to get the type (class or primitive type) of the var annotation.
+     *
+     * @return string|null Type of the property (content of var annotation)
+     * @throws InvalidAnnotation
+     */
+    public function getPropertyType(ReflectionProperty $property): ?string
+    {
+        return $this->readPropertyType($property, true);
+    }
+
+    /**
      * Parse the docblock of the property to get the class of the var annotation.
      *
      * @return string|null Type of the property (content of var annotation)
      * @throws InvalidAnnotation
      */
     public function getPropertyClass(ReflectionProperty $property): ?string
+    {
+        return $this->readPropertyType($property, false);
+    }
+
+    private function readPropertyType(ReflectionProperty $property, bool $allowPrimitiveTypes): ?string
     {
         // Get the content of the @var annotation
         $docComment = $property->getDocComment();
@@ -64,7 +80,10 @@ class PhpDocReader
         }
 
         // Ignore primitive types
-        if (in_array($type, self::IGNORED_TYPES)) {
+        if (isset(self::PRIMITIVE_TYPES[$type])) {
+            if ($allowPrimitiveTypes) {
+                return self::PRIMITIVE_TYPES[$type];
+            }
             return null;
         }
 
@@ -109,12 +128,28 @@ class PhpDocReader
     }
 
     /**
+     * Parse the docblock of the property to get the type (class or primitive type) of the param annotation.
+     *
+     * @return string|null Type of the property (content of var annotation)
+     * @throws InvalidAnnotation
+     */
+    public function getParameterType(ReflectionParameter $parameter): ?string
+    {
+        return $this->readParameterClass($parameter, true);
+    }
+
+    /**
      * Parse the docblock of the property to get the class of the param annotation.
      *
      * @return string|null Type of the property (content of var annotation)
      * @throws InvalidAnnotation
      */
     public function getParameterClass(ReflectionParameter $parameter): ?string
+    {
+        return $this->readParameterClass($parameter, false);
+    }
+
+    public function readParameterClass(ReflectionParameter $parameter, bool $allowPrimitiveTypes): ?string
     {
         // Use reflection
         $parameterClass = $parameter->getClass();
@@ -136,7 +171,10 @@ class PhpDocReader
         }
 
         // Ignore primitive types
-        if (in_array($type, self::IGNORED_TYPES)) {
+        if (isset(self::PRIMITIVE_TYPES[$type])) {
+            if ($allowPrimitiveTypes) {
+                return self::PRIMITIVE_TYPES[$type];
+            }
             return null;
         }
 
