@@ -49,19 +49,6 @@ class PhpDocReader
      *
      * @return string|null Type of the property (content of var annotation)
      * @throws InvalidAnnotation
-     *
-     * @deprecated Use getPropertyClass instead.
-     */
-    public function getPropertyType(ReflectionProperty $property): ?string
-    {
-        return $this->getPropertyClass($property);
-    }
-
-    /**
-     * Parse the docblock of the property to get the class of the var annotation.
-     *
-     * @return string|null Type of the property (content of var annotation)
-     * @throws InvalidAnnotation
      */
     public function getPropertyClass(ReflectionProperty $property): ?string
     {
@@ -119,19 +106,6 @@ class PhpDocReader
         $type = ltrim($type, '\\');
 
         return $type;
-    }
-
-    /**
-     * Parse the docblock of the property to get the class of the param annotation.
-     *
-     * @return string|null Type of the property (content of var annotation)
-     * @throws InvalidAnnotation
-     *
-     * @deprecated Use getParameterClass instead.
-     */
-    public function getParameterType(ReflectionParameter $parameter): ?string
-    {
-        return $this->getParameterClass($parameter);
     }
 
     /**
