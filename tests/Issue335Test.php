@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace UnitTest\PhpDocReader;
 
@@ -15,13 +15,14 @@ class Issue335Test extends TestCase
 {
     /**
      * This test ensures that namespaces are properly resolved for aliases that are defined in traits.
+     *
      * @see https://github.com/PHP-DI/PHP-DI/issues/335
      */
     public function testNamespaceResolutionForTraits()
     {
-        $parser = new PhpDocReader();
+        $parser = new PhpDocReader;
 
-        $target = new Class3();
+        $target = new Class3;
 
         $class = new ReflectionClass($target);
 

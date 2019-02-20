@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace PhpDocReader;
 
@@ -11,17 +11,13 @@ use Reflector;
 
 /**
  * PhpDoc reader
- *
- * @author Matthieu Napoli <matthieu@mnapoli.fr>
  */
 class PhpDocReader
 {
-    /**
-     * @var UseStatementParser
-     */
+    /** @var UseStatementParser */
     private $parser;
 
-    private $ignoredTypes = array(
+    private const IGNORED_TYPES = [
         'bool',
         'boolean',
         'string',
@@ -34,36 +30,29 @@ class PhpDocReader
         'callable',
         'resource',
         'mixed',
-    );
+    ];
 
-    /**
-     * Enable or disable throwing errors when PhpDoc Errors occur (when parsing annotations)
-     * 
-     * @var bool
-     */
+    /** @var bool */
     private $ignorePhpDocErrors;
 
     /**
-     * 
-     * @param bool $ignorePhpDocErrors
+     * @param bool $ignorePhpDocErrors Enable or disable throwing errors when PhpDoc errors occur (when parsing annotations).
      */
-    public function __construct($ignorePhpDocErrors = false)
+    public function __construct(bool $ignorePhpDocErrors = false)
     {
-        $this->parser = new UseStatementParser();
+        $this->parser = new UseStatementParser;
         $this->ignorePhpDocErrors = $ignorePhpDocErrors;
     }
 
     /**
      * Parse the docblock of the property to get the class of the var annotation.
      *
-     * @param ReflectionProperty $property
-     *
-     * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
+     * @throws AnnotationException
      *
      * @deprecated Use getPropertyClass instead.
      */
-    public function getPropertyType(ReflectionProperty $property)
+    public function getPropertyType(ReflectionProperty $property): ?string
     {
         return $this->getPropertyClass($property);
     }
@@ -71,22 +60,24 @@ class PhpDocReader
     /**
      * Parse the docblock of the property to get the class of the var annotation.
      *
-     * @param ReflectionProperty $property
-     *
-     * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
+     * @throws AnnotationException
      */
-    public function getPropertyClass(ReflectionProperty $property)
+    public function getPropertyClass(ReflectionProperty $property): ?string
     {
         // Get the content of the @var annotation
-        if (preg_match('/@var\s+([^\s]+)/', $property->getDocComment(), $matches)) {
-            list(, $type) = $matches;
+        $docComment = $property->getDocComment();
+        if (! $docComment) {
+            return null;
+        }
+        if (preg_match('/@var\s+([^\s]+)/', $docComment, $matches)) {
+            [, $type] = $matches;
         } else {
             return null;
         }
 
         // Ignore primitive types
-        if (in_array($type, $this->ignoredTypes)) {
+        if (in_array($type, self::IGNORED_TYPES)) {
             return null;
         }
 
@@ -102,7 +93,7 @@ class PhpDocReader
             // Try to resolve the FQN using the class context
             $resolvedType = $this->tryResolveFqn($type, $class, $property);
 
-            if (!$resolvedType && !$this->ignorePhpDocErrors) {
+            if (! $resolvedType && ! $this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
                     'The @var annotation on %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
@@ -111,11 +102,11 @@ class PhpDocReader
                     $type
                 ));
             }
-            
+
             $type = $resolvedType;
         }
 
-        if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
+        if (! $this->classExists($type) && ! $this->ignorePhpDocErrors) {
             throw new AnnotationException(sprintf(
                 'The @var annotation on %s::%s contains a non existent class "%s"',
                 $class->name,
@@ -133,14 +124,12 @@ class PhpDocReader
     /**
      * Parse the docblock of the property to get the class of the param annotation.
      *
-     * @param ReflectionParameter $parameter
-     *
-     * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
+     * @throws AnnotationException
      *
      * @deprecated Use getParameterClass instead.
      */
-    public function getParameterType(ReflectionParameter $parameter)
+    public function getParameterType(ReflectionParameter $parameter): ?string
     {
         return $this->getParameterClass($parameter);
     }
@@ -148,12 +137,10 @@ class PhpDocReader
     /**
      * Parse the docblock of the property to get the class of the param annotation.
      *
-     * @param ReflectionParameter $parameter
-     *
-     * @throws AnnotationException
      * @return string|null Type of the property (content of var annotation)
+     * @throws AnnotationException
      */
-    public function getParameterClass(ReflectionParameter $parameter)
+    public function getParameterClass(ReflectionParameter $parameter): ?string
     {
         // Use reflection
         $parameterClass = $parameter->getClass();
@@ -164,14 +151,18 @@ class PhpDocReader
         $parameterName = $parameter->name;
         // Get the content of the @param annotation
         $method = $parameter->getDeclaringFunction();
-        if (preg_match('/@param\s+([^\s]+)\s+\$' . $parameterName . '/', $method->getDocComment(), $matches)) {
-            list(, $type) = $matches;
+        $docComment = $method->getDocComment();
+        if (! $docComment) {
+            return null;
+        }
+        if (preg_match('/@param\s+([^\s]+)\s+\$' . $parameterName . '/', $docComment, $matches)) {
+            [, $type] = $matches;
         } else {
             return null;
         }
 
         // Ignore primitive types
-        if (in_array($type, $this->ignoredTypes)) {
+        if (in_array($type, self::IGNORED_TYPES)) {
             return null;
         }
 
@@ -186,8 +177,8 @@ class PhpDocReader
         if ($type[0] !== '\\') {
             // Try to resolve the FQN using the class context
             $resolvedType = $this->tryResolveFqn($type, $class, $parameter);
-         
-            if (!$resolvedType && !$this->ignorePhpDocErrors) {
+
+            if (! $resolvedType && ! $this->ignorePhpDocErrors) {
                 throw new AnnotationException(sprintf(
                     'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s". '
                         . 'Did you maybe forget to add a "use" statement for this annotation?',
@@ -197,11 +188,11 @@ class PhpDocReader
                     $type
                 ));
             }
-            
+
             $type = $resolvedType;
         }
 
-        if (!$this->classExists($type) && !$this->ignorePhpDocErrors) {
+        if (! $this->classExists($type) && ! $this->ignorePhpDocErrors) {
             throw new AnnotationException(sprintf(
                 'The @param annotation for parameter "%s" of %s::%s contains a non existent class "%s"',
                 $parameterName,
@@ -220,13 +211,9 @@ class PhpDocReader
     /**
      * Attempts to resolve the FQN of the provided $type based on the $class and $member context.
      *
-     * @param string $type
-     * @param ReflectionClass $class
-     * @param Reflector $member
-     * 
      * @return string|null Fully qualified name of the type, or null if it could not be resolved
      */
-    private function tryResolveFqn($type, ReflectionClass $class, Reflector $member) 
+    private function tryResolveFqn(string $type, ReflectionClass $class, Reflector $member): ?string
     {
         $alias = ($pos = strpos($type, '\\')) === false ? $type : substr($type, 0, $pos);
         $loweredAlias = strtolower($alias);
@@ -262,37 +249,33 @@ class PhpDocReader
     /**
      * Attempts to resolve the FQN of the provided $type based on the $class and $member context, specifically searching
      * through the traits that are used by the provided $class.
-     * 
-     * @param string $type
-     * @param ReflectionClass $class
-     * @param Reflector $member
      *
      * @return string|null Fully qualified name of the type, or null if it could not be resolved
      */
-    private function tryResolveFqnInTraits($type, ReflectionClass $class, Reflector $member)
+    private function tryResolveFqnInTraits(string $type, ReflectionClass $class, Reflector $member): ?string
     {
         /** @var ReflectionClass[] $traits */
-        $traits = array();
+        $traits = [];
 
         // Get traits for the class and its parents
         while ($class) {
             $traits = array_merge($traits, $class->getTraits());
             $class = $class->getParentClass();
         }
-        
+
         foreach ($traits as $trait) {
             // Eliminate traits that don't have the property/method/parameter
-            if ($member instanceof ReflectionProperty && !$trait->hasProperty($member->name)) {
+            if ($member instanceof ReflectionProperty && ! $trait->hasProperty($member->name)) {
                 continue;
-            } elseif ($member instanceof ReflectionMethod && !$trait->hasMethod($member->name)) {
+            } elseif ($member instanceof ReflectionMethod && ! $trait->hasMethod($member->name)) {
                 continue;
-            } elseif ($member instanceof ReflectionParameter && !$trait->hasMethod($member->getDeclaringFunction()->name)) {
+            } elseif ($member instanceof ReflectionParameter && ! $trait->hasMethod($member->getDeclaringFunction()->name)) {
                 continue;
             }
 
             // Run the resolver again with the ReflectionClass instance for the trait
             $resolvedType = $this->tryResolveFqn($type, $trait, $member);
-            
+
             if ($resolvedType) {
                 return $resolvedType;
             }
@@ -300,11 +283,7 @@ class PhpDocReader
         return null;
     }
 
-    /**
-     * @param string $class
-     * @return bool
-     */
-    private function classExists($class)
+    private function classExists(string $class): bool
     {
         return class_exists($class) || interface_exists($class);
     }

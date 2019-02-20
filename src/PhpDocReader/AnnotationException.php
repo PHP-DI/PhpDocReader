@@ -1,10 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace PhpDocReader;
 
-/**
- * @author Matthieu Napoli <matthieu@mnapoli.fr>
- */
 class AnnotationException extends \Exception
 {
 }

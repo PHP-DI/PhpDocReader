@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace UnitTest\PhpDocReader;
 
@@ -18,7 +18,7 @@ class NonExistentClassTest extends TestCase
      */
     public function testProperties()
     {
-        $parser = new PhpDocReader();
+        $parser = new PhpDocReader;
         $class = new \ReflectionClass(Class1::class);
 
         $parser->getPropertyClass($class->getProperty('prop'));
@@ -30,7 +30,7 @@ class NonExistentClassTest extends TestCase
      */
     public function testMethodParameters()
     {
-        $parser = new PhpDocReader();
+        $parser = new PhpDocReader;
         $parameter = new ReflectionParameter([Class1::class, 'foo'], 'param');
 
         $parser->getParameterClass($parameter);

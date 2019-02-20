@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace UnitTest\PhpDocReader;
 
@@ -14,7 +14,7 @@ class FunctionalTest extends TestCase
 {
     public function testReadPropertyType()
     {
-        $parser = new PhpDocReader();
+        $parser = new PhpDocReader;
 
         $className = Class1::class;
 
@@ -33,7 +33,7 @@ class FunctionalTest extends TestCase
 
     public function testReadParamType()
     {
-        $parser = new PhpDocReader();
+        $parser = new PhpDocReader;
 
         $method = [Class1::class, 'foo'];
 
