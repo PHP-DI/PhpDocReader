@@ -29,7 +29,7 @@ class UseStatementParser
             return [];
         }
 
-        $namespace = preg_quote($class->getNamespaceName());
+        $namespace = preg_quote($class->getNamespaceName(), '/');
         $content = preg_replace('/^.*?(\bnamespace\s+' . $namespace . '\s*[;{].*)$/s', '\\1', $content);
         $tokenizer = new TokenParser('<?php ' . $content);
 
@@ -39,14 +39,13 @@ class UseStatementParser
     /**
      * Gets the content of the file right up to the given line number.
      *
-     * @param string $filename   The name of the file to load.
-     * @param int    $lineNumber The number of lines to read from file.
-     * @return string The content of the file.
+     * @param string $filename The name of the file to load.
+     * @param int $lineNumber The number of lines to read from file.
      */
     private function getFileContent(string $filename, int $lineNumber): string
     {
         if (! is_file($filename)) {
-            return null;
+            throw new \RuntimeException("Unable to read file $filename");
         }
 
         $content = '';
