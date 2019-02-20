@@ -3,12 +3,13 @@
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
+use PHPUnit\Framework\TestCase;
 use ReflectionParameter;
 
 /**
  * Test exceptions when a class doesn't exist.
  */
-class NonExistentClassTest extends \PHPUnit_Framework_TestCase
+class NonExistentClassTest extends TestCase
 {
     /**
      * @expectedException \PhpDocReader\AnnotationException

@@ -3,13 +3,11 @@
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
+use PHPUnit\Framework\TestCase;
 use ReflectionParameter;
 use ReflectionProperty;
 
-/**
- * Functional tests
- */
-class FunctionalTest extends \PHPUnit_Framework_TestCase
+class FunctionalTest extends TestCase
 {
     public function testReadPropertyType()
     {

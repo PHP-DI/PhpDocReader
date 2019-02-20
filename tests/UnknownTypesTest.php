@@ -3,12 +3,13 @@
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
+use PHPUnit\Framework\TestCase;
 use ReflectionParameter;
 
 /**
  * @see https://github.com/mnapoli/PhpDocReader/issues/3
  */
-class UnknownTypesTest extends \PHPUnit_Framework_TestCase
+class UnknownTypesTest extends TestCase
 {
     /**
      * @dataProvider typeProvider

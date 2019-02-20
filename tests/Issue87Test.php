@@ -3,11 +3,12 @@
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @see https://github.com/mnapoli/PHP-DI/issues/87
  */
-class Issue87Test extends \PHPUnit_Framework_TestCase
+class Issue87Test extends TestCase
 {
     /**
      * This test ensures that use statements in class files take precedence in resolving type annotations

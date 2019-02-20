@@ -3,14 +3,14 @@
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use UnitTest\PhpDocReader\FixturesIssue335\Class3;
 
 /**
  * @see https://github.com/PHP-DI/PHP-DI/issues/335
  */
-class Issue335Test extends PHPUnit_Framework_TestCase
+class Issue335Test extends TestCase
 {
     const CLASS_X = 'UnitTest\PhpDocReader\FixturesIssue335\ClassX';
 
