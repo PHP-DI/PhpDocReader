@@ -5,6 +5,7 @@ namespace UnitTest\PhpDocReader;
 use PhpDocReader\PhpDocReader;
 use PHPUnit\Framework\TestCase;
 use ReflectionParameter;
+use UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1;
 
 /**
  * @see https://github.com/mnapoli/PhpDocReader/issues/1
@@ -17,7 +18,7 @@ class PrimitiveTypesTest extends TestCase
     public function testProperties($type)
     {
         $parser = new PhpDocReader();
-        $class = new \ReflectionClass('UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1');
+        $class = new \ReflectionClass(Class1::class);
 
         $this->assertNull($parser->getPropertyClass($class->getProperty($type)));
     }
@@ -28,26 +29,26 @@ class PrimitiveTypesTest extends TestCase
     public function testMethodParameters($type)
     {
         $parser = new PhpDocReader();
-        $parameter = new ReflectionParameter(array('UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1', 'foo'), $type);
+        $parameter = new ReflectionParameter([Class1::class, 'foo'], $type);
 
         $this->assertNull($parser->getParameterClass($parameter));
     }
 
     public function typeProvider()
     {
-        return array(
-            'bool'     => array('bool'),
-            'boolean'  => array('boolean'),
-            'string'   => array('string'),
-            'int'      => array('int'),
-            'integer'  => array('integer'),
-            'float'    => array('float'),
-            'double'   => array('double'),
-            'array'    => array('array'),
-            'object'   => array('object'),
-            'callable' => array('callable'),
-            'resource' => array('resource'),
-            'mixed'    => array('mixed'),
-        );
+        return [
+            'bool' => ['bool'],
+            'boolean' => ['boolean'],
+            'string' => ['string'],
+            'int' => ['int'],
+            'integer' => ['integer'],
+            'float' => ['float'],
+            'double' => ['double'],
+            'array' => ['array'],
+            'object' => ['object'],
+            'callable' => ['callable'],
+            'resource' => ['resource'],
+            'mixed' => ['mixed'],
+        ];
     }
 }
