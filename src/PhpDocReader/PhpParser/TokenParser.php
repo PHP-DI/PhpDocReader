@@ -112,9 +112,10 @@ class TokenParser
      */
     private function parseUseStatement()
     {
+        $groupRoot = '';
         $class = '';
         $alias = '';
-        $statements = array();
+        $statements = [];
         $explicitAlias = false;
         while (($token = $this->next())) {
             $isNameToken = $token[0] === T_STRING || $token[0] === T_NS_SEPARATOR;
@@ -127,13 +128,18 @@ class TokenParser
                 $explicitAlias = true;
                 $alias = '';
             } elseif ($token === ',') {
-                $statements[strtolower($alias)] = $class;
+                $statements[strtolower($alias)] = $groupRoot . $class;
                 $class = '';
                 $alias = '';
                 $explicitAlias = false;
             } elseif ($token === ';') {
-                $statements[strtolower($alias)] = $class;
+                $statements[strtolower($alias)] = $groupRoot . $class;
                 break;
+            } else if ($token === '{' ) {
+                $groupRoot = $class;
+                $class = '';
+            } else if ($token === '}' ) {
+                continue;
             } else {
                 break;
             }
