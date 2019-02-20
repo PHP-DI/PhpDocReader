@@ -8,6 +8,8 @@ use SplFileObject;
  * Parses a file for "use" declarations.
  *
  * Class taken and adapted from doctrine/annotations to avoid pulling the whole package.
+ *
+ * Authors: Fabien Potencier <fabien@symfony.com> and Christian Kaps <christian.kaps@mohiva.com>
  */
 class UseStatementParser
 {
