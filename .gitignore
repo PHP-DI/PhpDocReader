@@ -4,3 +4,4 @@ vendor/*
 composer.phar
 composer.lock
 .phpcs-cache
+.phpcs-cache
