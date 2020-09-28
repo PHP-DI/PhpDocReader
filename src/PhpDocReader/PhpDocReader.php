@@ -149,12 +149,14 @@ class PhpDocReader
         return $this->readParameterClass($parameter, false);
     }
 
-    public function readParameterClass(ReflectionParameter $parameter, bool $allowPrimitiveTypes): ?string
+    private function readParameterClass(ReflectionParameter $parameter, bool $allowPrimitiveTypes): ?string
     {
         // Use reflection
-        $parameterClass = $parameter->getClass();
-        if ($parameterClass !== null) {
-            return $parameterClass->name;
+        $parameterType = $parameter->getType();
+        if ($parameterType) {
+            if (!$parameterType->isBuiltin() && $parameterType instanceof \ReflectionNamedType) {
+                return $parameterType->getName();
+            }
         }
 
         $parameterName = $parameter->name;
