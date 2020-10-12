@@ -12,4 +12,10 @@
     <exclude-pattern>tests/Fixtures</exclude-pattern>
 
     <rule ref="HardMode"/>
+
+    <!-- Ignore PhpDocReader\AnnotationException -->
+    <rule ref="SlevomatCodingStandard.Classes.SuperfluousExceptionNaming.SuperfluousSuffix">
+        <severity>0</severity>
+    </rule>
+
 </ruleset>

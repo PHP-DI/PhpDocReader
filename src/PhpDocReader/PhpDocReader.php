@@ -155,7 +155,7 @@ class PhpDocReader
         // Use reflection
         $parameterType = $parameter->getType();
         if ($parameterType) {
-            if (!$parameterType->isBuiltin() && $parameterType instanceof \ReflectionNamedType) {
+            if (! $parameterType->isBuiltin() && $parameterType instanceof \ReflectionNamedType) {
                 return $parameterType->getName();
             }
         }

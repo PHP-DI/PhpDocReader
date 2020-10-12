@@ -70,7 +70,6 @@ class Issue87Test extends TestCase
         $this->assertEquals(SomeDependencyFixture2::class, $result);
     }
 
-
     /**
      * This test ensures that use statements in class files take precedence in resolving type annotations
      *
