@@ -15,7 +15,7 @@ jobs:
                     php-version: 7.4
                     tools: composer, cs2pr
                     coverage: none
-            -   name: Cache dependencies installed with Composer
+            -   name: Cache Composer dependencies
                 uses: actions/cache@v2
                 with:
                     path: ~/.composer/cache
