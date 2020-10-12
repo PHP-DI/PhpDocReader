@@ -113,7 +113,7 @@ class PhpDocReader
             $type = $resolvedType;
         }
 
-        if (! $this->classExists($type) && ! $this->ignorePhpDocErrors) {
+        if (! $this->ignorePhpDocErrors && ! $this->classExists($type)) {
             throw new AnnotationException(sprintf(
                 'The @var annotation on %s::%s contains a non existent class "%s"',
                 $class->name,
@@ -154,10 +154,8 @@ class PhpDocReader
     {
         // Use reflection
         $parameterType = $parameter->getType();
-        if ($parameterType) {
-            if (! $parameterType->isBuiltin() && $parameterType instanceof \ReflectionNamedType) {
-                return $parameterType->getName();
-            }
+        if ($parameterType && $parameterType instanceof \ReflectionNamedType && ! $parameterType->isBuiltin()) {
+            return $parameterType->getName();
         }
 
         $parameterName = $parameter->name;
@@ -242,12 +240,18 @@ class PhpDocReader
                 return $uses[$loweredAlias] . substr($type, $pos);
             }
             return $uses[$loweredAlias];
-        } elseif ($this->classExists($class->getNamespaceName() . '\\' . $type)) {
+        }
+
+        if ($this->classExists($class->getNamespaceName() . '\\' . $type)) {
             return $class->getNamespaceName() . '\\' . $type;
-        } elseif (isset($uses['__NAMESPACE__']) && $this->classExists($uses['__NAMESPACE__'] . '\\' . $type)) {
+        }
+
+        if (isset($uses['__NAMESPACE__']) && $this->classExists($uses['__NAMESPACE__'] . '\\' . $type)) {
             // Class namespace
             return $uses['__NAMESPACE__'] . '\\' . $type;
-        } elseif ($this->classExists($type)) {
+        }
+
+        if ($this->classExists($type)) {
             // No namespace
             return $type;
         }
