@@ -1,22 +1,24 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
+use PHPUnit\Framework\TestCase;
 use ReflectionParameter;
+use UnitTest\PhpDocReader\FixturesUnknownTypes\Class1;
 
 /**
  * @see https://github.com/mnapoli/PhpDocReader/issues/3
  */
-class UnknownTypesTest extends \PHPUnit_Framework_TestCase
+class UnknownTypesTest extends TestCase
 {
     /**
      * @dataProvider typeProvider
      */
-    public function testProperties($type)
+    public function testProperties(string $type)
     {
-        $parser = new PhpDocReader();
-        $class = new \ReflectionClass('UnitTest\PhpDocReader\FixturesUnknownTypes\Class1');
+        $parser = new PhpDocReader;
+        $class = new \ReflectionClass(Class1::class);
 
         $this->assertNull($parser->getPropertyClass($class->getProperty($type)));
     }
@@ -24,21 +26,21 @@ class UnknownTypesTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider typeProvider
      */
-    public function testMethodParameters($type)
+    public function testMethodParameters(string $type)
     {
-        $parser = new PhpDocReader();
-        $parameter = new ReflectionParameter(array('UnitTest\PhpDocReader\FixturesUnknownTypes\Class1', 'foo'), $type);
+        $parser = new PhpDocReader;
+        $parameter = new ReflectionParameter([Class1::class, 'foo'], $type);
 
         $this->assertNull($parser->getParameterClass($parameter));
     }
 
-    public function typeProvider()
+    public function typeProvider(): array
     {
-        return array(
-            'empty'    => array('empty'),
-            'array'    => array('array'),
-            'generics' => array('generics'),
-            'multiple' => array('multiple'),
-        );
+        return [
+            'empty' => ['empty'],
+            'array' => ['array'],
+            'generics' => ['generics'],
+            'multiple' => ['multiple'],
+        ];
     }
 }

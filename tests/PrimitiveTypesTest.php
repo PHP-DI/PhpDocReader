@@ -1,53 +1,54 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace UnitTest\PhpDocReader;
 
 use PhpDocReader\PhpDocReader;
+use PHPUnit\Framework\TestCase;
 use ReflectionParameter;
+use UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1;
 
-/**
- * @see https://github.com/mnapoli/PhpDocReader/issues/1
- */
-class PrimitiveTypesTest extends \PHPUnit_Framework_TestCase
+class PrimitiveTypesTest extends TestCase
 {
     /**
      * @dataProvider typeProvider
      */
-    public function testProperties($type)
+    public function testProperties(string $type, string $expectedType)
     {
-        $parser = new PhpDocReader();
-        $class = new \ReflectionClass('UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1');
+        $parser = new PhpDocReader;
+        $class = new \ReflectionClass(Class1::class);
 
         $this->assertNull($parser->getPropertyClass($class->getProperty($type)));
+        $this->assertEquals($expectedType, $parser->getPropertyType($class->getProperty($type)));
     }
 
     /**
      * @dataProvider typeProvider
      */
-    public function testMethodParameters($type)
+    public function testMethodParameters(string $type, string $expectedType)
     {
-        $parser = new PhpDocReader();
-        $parameter = new ReflectionParameter(array('UnitTest\PhpDocReader\FixturesPrimitiveTypes\Class1', 'foo'), $type);
+        $parser = new PhpDocReader;
+        $parameter = new ReflectionParameter([Class1::class, 'foo'], $type);
 
         $this->assertNull($parser->getParameterClass($parameter));
+        $this->assertEquals($expectedType, $parser->getParameterType($parameter));
     }
 
-    public function typeProvider()
+    public function typeProvider(): array
     {
-        return array(
-            'bool'     => array('bool'),
-            'boolean'  => array('boolean'),
-            'string'   => array('string'),
-            'int'      => array('int'),
-            'integer'  => array('integer'),
-            'float'    => array('float'),
-            'double'   => array('double'),
-            'array'    => array('array'),
-            'object'   => array('object'),
-            'callable' => array('callable'),
-            'resource' => array('resource'),
-            'mixed'    => array('mixed'),
-            'iterable' => array('iterable'),
-        );
+        return [
+            'bool' => ['bool', 'bool'],
+            'boolean' => ['boolean', 'bool'],
+            'string' => ['string', 'string'],
+            'int' => ['int', 'int'],
+            'integer' => ['integer', 'int'],
+            'float' => ['float', 'float'],
+            'double' => ['double', 'float'],
+            'array' => ['array', 'array'],
+            'object' => ['object', 'object'],
+            'callable' => ['callable', 'callable'],
+            'resource' => ['resource', 'resource'],
+            'mixed' => ['mixed', 'mixed'],
+            'iterable' => ['iterable', 'iterable'],
+        ];
     }
 }
