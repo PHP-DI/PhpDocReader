@@ -123,7 +123,7 @@ class PhpDocReader
         }
 
         // Remove the leading \ (FQN shouldn't contain it)
-        $type = ltrim($type, '\\');
+        $type = is_string($type) ? ltrim($type, '\\') : null;
 
         return $type;
     }
@@ -216,7 +216,7 @@ class PhpDocReader
         }
 
         // Remove the leading \ (FQN shouldn't contain it)
-        $type = ltrim($type, '\\');
+        $type = is_string($type) ? ltrim($type, '\\') : null;
 
         return $type;
     }

@@ -24,6 +24,14 @@ class NonExistentClassTest extends TestCase
         $parser->getPropertyClass($class->getProperty('prop'));
     }
 
+    public function testPropertiesAndIgnoreErrors(): void
+    {
+        $parser = new PhpDocReader(true);
+        $class = new \ReflectionClass(Class1::class);
+
+        $this->assertNull($parser->getPropertyClass($class->getProperty('prop')));
+    }
+
     public function testMethodParameters(): void
     {
         $parser = new PhpDocReader;
@@ -33,5 +41,13 @@ class NonExistentClassTest extends TestCase
         $this->expectDeprecationMessage('The @param annotation for parameter "param" of UnitTest\PhpDocReader\FixturesNonExistentClass\Class1::foo contains a non existent class "Foo". Did you maybe forget to add a "use" statement for this annotation?');
 
         $parser->getParameterClass($parameter);
+    }
+
+    public function testMethodParametersAndIgnoreErrors(): void
+    {
+        $parser = new PhpDocReader(true);
+        $parameter = new ReflectionParameter([Class1::class, 'foo'], 'param');
+
+        $this->assertNull($parser->getParameterClass($parameter));
     }
 }
