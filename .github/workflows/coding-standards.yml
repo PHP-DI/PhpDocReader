@@ -13,9 +13,7 @@ jobs:
                 uses: shivammathur/setup-php@v2
                 with:
                     php-version: 7.4
-                    tools:
-                        - composer:v2
-                        - cs2pr
+                    tools: composer:v2, cs2pr
                     coverage: none
             -   name: Cache dependencies installed with Composer
                 uses: actions/cache@v2
