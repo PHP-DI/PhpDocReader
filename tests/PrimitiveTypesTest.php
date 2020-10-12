@@ -48,6 +48,7 @@ class PrimitiveTypesTest extends TestCase
             'callable' => ['callable', 'callable'],
             'resource' => ['resource', 'resource'],
             'mixed' => ['mixed', 'mixed'],
+            'iterable' => ['iterable', 'iterable'],
         ];
     }
 }

@@ -30,6 +30,7 @@ class PhpDocReader
         'callable' => 'callable',
         'resource' => 'resource',
         'mixed' => 'mixed',
+        'iterable' => 'iterable',
     ];
 
     /** @var bool */
