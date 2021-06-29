@@ -14,13 +14,19 @@ jobs:
         name: Tests - PHP ${{ matrix.php }} ${{ matrix.dependency-version }}
         runs-on: ubuntu-latest
         timeout-minutes: 15
+        continue-on-error: ${{ matrix.experimental }}
         strategy:
             matrix:
                 php: [ '7.2', '7.3', '7.4', '8.0' ]
                 dependency-version: [ '' ]
+                experimental: [ false ]
                 include:
                     -   php: '7.2'
                         dependency-version: '--prefer-lowest'
+                include:
+                    -   php: '8.1'
+                        dependency-version: ''
+                        experimental: true
         steps:
             -   name: Checkout
                 uses: actions/checkout@v2
@@ -37,7 +43,7 @@ jobs:
                     key: php-${{ matrix.php }}-composer-locked-${{ hashFiles('composer.lock') }}
                     restore-keys: php-${{ matrix.php }}-composer-locked-
             -   name: Install PHP dependencies
-                run: composer update ${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress --no-suggest
+                run: composer update ${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress
             -   name: PHPUnit
                 run: vendor/bin/phpunit
 
@@ -60,6 +66,6 @@ jobs:
                     key: php-74-composer-locked-${{ hashFiles('composer.lock') }}
                     restore-keys: php-74-composer-locked-
             -   name: Install PHP dependencies
-                run: composer install --no-interaction --no-progress --no-suggest
+                run: composer install --no-interaction --no-progress
             -   name: PHP CodeSniffer
                 run: vendor/bin/phpcs -q --no-colors --report=checkstyle | cs2pr
