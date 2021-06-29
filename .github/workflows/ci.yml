@@ -23,7 +23,7 @@ jobs:
                 include:
                     -   php: '7.2'
                         dependency-version: '--prefer-lowest'
-                include:
+                        experimental: false
                     -   php: '8.1'
                         dependency-version: ''
                         experimental: true
