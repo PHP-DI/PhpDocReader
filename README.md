@@ -1,11 +1,12 @@
 # PhpDocReader
 
 ![](https://img.shields.io/packagist/dt/PHP-DI/phpdoc-reader.svg)
+[![CI](https://github.com/PHP-DI/PhpDocReader/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/PHP-DI/PhpDocReader/actions/workflows/ci.yml)
 
 This project is used by:
 
 - [PHP-DI 6](http://php-di.org/)
-- [phockito-unit-php-di](https://github.com/balihoo/phockito-unit-php-di)
+- [Woohoo Labs. Zen](https://github.com/woohoolabs/zen)
 
 Fork the README to add your project here.
 
