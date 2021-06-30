@@ -53,6 +53,6 @@ $property = new ReflectionProperty($className, $propertyName);
 $propertyClass = $reader->getPropertyClass($property);
 
 // Read a parameter type (@param phpdoc)
-$parameter = new ReflectionParameter(array($className, $methodName), $parameterName);
+$parameter = new ReflectionParameter([$className, $methodName], $parameterName);
 $parameterClass = $reader->getParameterClass($parameter);
 ```
